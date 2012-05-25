@@ -1,24 +1,17 @@
 Note  -*- mode: org; -*-
 * Giovanni Giorgi Erlang Redis Study project 			       :spec:
-Web Server is Mochiweb.
 Dev platform is a virtualized
  Linux/Debian
- Eclipse Helios with Erlide plugin 0.11
- Mercurial 1.6.x
+ Git 1.x
+ 
 
 Optional Platform: MacOSX Snow Leopard
 NB: la libreria cripto-2 ha una dipendenza binaria e quindi non funziona 
 su macosx
 
 ** Target Platform
- Gioorgi.com
+Still unknown
 
-| Database Choiche |   |   |   |   |
-|------------------+---+---+---+---|
-| MySQL            |   |   |   |   |
-| CouchDB          |   |   |   |   |
-|                  |   |   |   |   |
-|                  |   |   |   |   |
 
  
 ** Risorse Nitrogen
@@ -31,7 +24,7 @@ https://github.com/Eonblast/Emysql
 - [-]TODO: Testare se il multi piattaforma Linux/Mac funziona [1/2]
  - [ ] Valutare se usarlo
  - [X] Valutare anche SCALA
-* Url Vari							      :vario:
+* Url Vari							      :vario:testing:
+http://bob.ippoli.to/erl_testing_2011/
 http://beastwithin.org/users/wwwwolf/fantasy/avarthrel/blog/2011/05/lets-just-use-emacs.html
-* Test Sparse Tree
-TODO
+

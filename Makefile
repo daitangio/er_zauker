@@ -4,13 +4,9 @@ deps:
 	@$(REBAR) get-deps
 compile:
 	@$(REBAR) compile
-
-test:
+eunit:
 	@$(REBAR) skip_deps=true eunit
-
 clean:
 	@$(REBAR) clean
-pack:
-	echo Gioorgi Pack
-	tar jcvf ../theConsultantLatest.tar.bz2 --exclude=.hg/\* --exclude=.git/\* .
+
 
