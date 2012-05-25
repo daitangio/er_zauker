@@ -1,0 +1,12 @@
+{application, er_zauker,
+ [
+  {description, ""},
+  {vsn, "1"},
+  {registered, []},
+  {applications, [
+                  kernel,
+                  stdlib
+                 ]},
+  {mod, { er_zauker_app, []}},
+  {env, []}
+ ]}.
