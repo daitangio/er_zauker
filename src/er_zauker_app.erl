@@ -1,4 +1,5 @@
 -module(er_zauker_app).
+-author("giovanni.giorgi@gioorgi.com").
 
 -behaviour(application).
 
@@ -14,3 +15,6 @@ start(_StartType, _StartArgs) ->
 
 stop(_State) ->
     ok.
+
+
+
