@@ -21,12 +21,31 @@ trigram_split_test()->
 trigram_split2_test()->
     Trigrams=er_zauker_util:trigram("Greather3"),
     io:format("Trigram:~p~n",[Trigrams]),
-    ?assertEqual(Trigrams,["Gre","ath","er3"]).
+    ?assertEqual(["Gre","rea","eat","ath","the","her","er3"],Trigrams).
 
 trigram_split3__case_insensitive_test()->
     Trigrams=er_zauker_util:itrigram("GreaTHer3"),
     io:format("Trigram:~p~n",[Trigrams]),
-    ?assertEqual(Trigrams,["gre","ath","er3"]).
+    ?assertEqual(["gre","rea","eat","ath","the","her","er3"],Trigrams).
+
+trigram_2_set_test()->
+    S=er_zauker_util:split_on_set("Pizza"),
+    io:format("Set:~p~n",[S]),
+    % piz, izz,zza
+    ?assertEqual(3,sets:size(S)).
+
+trigram_2_set2_test()->
+    S1=er_zauker_util:split_on_set("Pizza", sets:new()),
+    % Try again...
+    S2=er_zauker_util:split_on_set("Pizza", S1),
+    io:format("Set:~p~n",[S2]),
+    % Must be still the same...
+    ?assertEqual(3,sets:size(S2)).
+incr_id_test()->
+    {ok, C} = eredis:start_link(),
+    MyTestId=er_zauker_util:get_unique_id(C),
+    ?debugVal(MyTestId),
+    ?assert(MyTestId >= 0).
 
 -endif.
 
