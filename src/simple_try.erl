@@ -41,12 +41,17 @@ trigram_2_set2_test()->
     io:format("Set:~p~n",[S2]),
     % Must be still the same...
     ?assertEqual(3,sets:size(S2)).
-incr_id_test()->
+
+incr_id_test_disabled()->
     {ok, C} = eredis:start_link(),
     MyTestId=er_zauker_util:get_unique_id(C),
     ?debugVal(MyTestId),
-    ?assert(MyTestId >= 0).
+    ?assert(    list_to_integer(MyTestId) >= 0).
 
+split_trigram_1_test()->
+    TrigramSet=er_zauker_util:split_file_in_trigrams("/k/code/code_zauker/test/fixture/TEST_LICENSE.txt"),
+    ?debugVal(sets:to_list(TrigramSet)).
+    
 -endif.
 
 

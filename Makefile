@@ -9,4 +9,5 @@ eunit:
 clean:
 	@$(REBAR) clean
 
-
+cli:
+	erl -pa ebin/ -name Cli -setCookie ErZaukerCli
