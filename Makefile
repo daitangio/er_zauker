@@ -10,4 +10,6 @@ clean:
 	@$(REBAR) clean
 
 cli:
-	erl -pa ebin/ -name Cli -setCookie ErZaukerCli
+	erl  -name Cli -setCookie ErZaukerCli  -pa lib/eredis/ebin/ -pa ebin/ -eval 'er_zauker_util:load_file("/k/code/erlang/er_zauker/README.txt").'
+check:
+	@$(REBAR) skip_deps=true build-plt dialyze 

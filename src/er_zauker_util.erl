@@ -1,7 +1,8 @@
 -module(er_zauker_util).
 -author("giovanni.giorgi@gioorgi.com").
 
--export([trigram/1,itrigram/1,split_on_set/1,split_on_set/2, get_unique_id/1, split_file_in_trigrams/1, good_trigram/1]).
+-export([load_file/1,redis_pusher/2,
+	 trigram/1,itrigram/1,split_on_set/1,split_on_set/2, get_unique_id/1, split_file_in_trigrams/1, good_trigram/1]).
 
 %%% Space guy is the tree-spaced guy
 -define(SPACE_GUY,"   ").
@@ -63,14 +64,59 @@ scan_file_trigrams(Fd,TrigramSet, {ok, Binary})->
 scan_file_trigrams(Fd,TrigramSet, eof)->
     file:close(Fd),
     % Remove the bad guys right now
-    sets:filter(fun good_trigram/1,TrigramSet);
-    %% TrigramSet;
+    FilteredSet=sets:filter(fun good_trigram/1,TrigramSet),
+    io:format("*Set Size:~p~n",[sets:size(FilteredSet)]),
+    {ok,FilteredSet};
 
 scan_file_trigrams(Fd, _TrigramSet, {error,Reason}) ->
     file:close(Fd),
     {error,Reason}.   
 
 
+redis_pusher(Trigram, Accumulator)->
+    {data, Redis, FileId, Counter }=Accumulator,
+    eredis:q(Redis,["SADD", string:concat("trigram:",Trigram),FileId]),
+    eredis:q(Redis,["SADD", string:concat("fscan:trigramsOnFile:",FileId),Trigram]),
+    eredis:q(Redis,["SADD", string:concat("trigram:ci:",string:to_lower(Trigram)),FileId]),
+    AccOut={data, Redis, FileId, Counter+1 },
+    AccOut.
+
+%% @doc Master Entry Point:
+%% Load a file, split in trigrams and push on Redis
+%% The file split is 
+load_file(Fname)->
+    {ok, C} = eredis:start_link(),
+    load_file(Fname,C).
+
+load_file(Fname,C)->
+    {ok, Stuff}=eredis:q(C,["GET",string:concat("fscan:id:",Fname)]),
+    case Stuff of
+	undefined -> FileId=er_zauker_util:get_unique_id(C),
+		     eredis:q(C,["SET", string:concat("fscan:id:",Fname),FileId]),
+		     eredis:q(C,["SET", string:concat("fscan:id2filename:",FileId),Fname]),
+		     io:format("New FileId:~p For File: ~p~n",[FileId,Fname]);
+	_ -> FileId=binary_to_list(Stuff),
+	     io:format("Already Found FileId:~p For File: ~p~n",[FileId,Fname])
+    end,
+    io:format("Splitting files...~n"),
+    {ok, TrigramSet}=split_file_in_trigrams(Fname),
+    io:format("Pushing data...~n"),
+    %% %% Now wrap the redis_pusher function inside a multi/exec transaction
+    %% %%{ok, <<"OK">>} = eredis:q(C, ["MULTI"]),
+    eredis:q(C, ["MULTI"]),    
+    {data, _Redis, _FileId, MyCounter }=sets:fold(fun redis_pusher/2,{data, C, FileId,0 },TrigramSet),
+    %% %%{ok, [<<"OK">>, <<"OK">>]} = eredis:q(C, ["EXEC"]),
+    eredis:q(C, ["EXEC"]),
+    io:format("Elements pushed: ~p~n", [MyCounter]),
+    {ok}.
+
+%% fold(Function, Acc0, Set) -> Acc1
+%% Types:
+%% Function = fun (E, AccIn) -> AccOut
+%% Acc0 = Acc1 = AccIn = AccOut = term()
+%% Set = set()
+%% Fold Function over every element in Set returning the final value of the accumulator.
+    
 %% Example of multi bulk
 %% {ok, <<"OK">>} = eredis:q(C, ["MULTI"]).
 %% {ok, <<"QUEUED">>} = eredis:q(C, ["SET", "foo", "bar"]).

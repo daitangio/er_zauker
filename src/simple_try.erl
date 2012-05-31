@@ -49,7 +49,7 @@ incr_id_test_disabled()->
     ?assert(    list_to_integer(MyTestId) >= 0).
 
 split_trigram_1_test()->
-    TrigramSet=er_zauker_util:split_file_in_trigrams("/k/code/code_zauker/test/fixture/TEST_LICENSE.txt"),
+    {ok,TrigramSet}=er_zauker_util:split_file_in_trigrams("/k/code/code_zauker/test/fixture/TEST_LICENSE.txt"),
     ?debugVal(sets:to_list(TrigramSet)).
     
 -endif.
