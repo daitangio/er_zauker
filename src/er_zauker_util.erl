@@ -1,7 +1,7 @@
 -module(er_zauker_util).
 -author("giovanni.giorgi@gioorgi.com").
 
--export([load_file/1,redis_pusher/2,
+-export([load_file/1,
 	 trigram/1,itrigram/1,split_on_set/1,split_on_set/2, get_unique_id/1, split_file_in_trigrams/1, good_trigram/1]).
 
 %%% Space guy is the tree-spaced guy
@@ -42,9 +42,9 @@ get_unique_id(C)->
 
 %% Returns a Set of unique trigrams
 split_file_in_trigrams(Fname)->
-    case file:open(Fname,[read,raw,binary]) of
+    case file:open(Fname,[read,{encoding,utf8}, {read_ahead,5000}]) of
 	{ok,Fd}->
-	    scan_file_trigrams(Fd,sets:new(),file:read(Fd,1024));
+	    scan_file_trigrams(Fd,sets:new(),file:read_line(Fd));
 	{error,Reason} ->
 	    {error,Reason}
     end.
@@ -55,11 +55,9 @@ good_trigram(Element)->
 
 
 
-scan_file_trigrams(Fd,TrigramSet, {ok, Binary})->
-    StringToSplit=binary_to_list(Binary),
-    NewSet=split_on_set(StringToSplit,TrigramSet),
-    % scan_file(Fd, Occurs + count_x(Binary), file:read(Fd, 1024));
-    scan_file_trigrams(Fd,NewSet,file:read(Fd,1023));
+scan_file_trigrams(Fd,TrigramSet, {ok, StringToSplit})->
+    NewSet=split_on_set(StringToSplit,TrigramSet),    
+    scan_file_trigrams(Fd,NewSet,file:read_line(Fd));
 
 scan_file_trigrams(Fd,TrigramSet, eof)->
     file:close(Fd),
@@ -102,23 +100,13 @@ load_file(Fname,C)->
     {ok, TrigramSet}=split_file_in_trigrams(Fname),
     io:format("Pushing data...~n"),
     %% %% Now wrap the redis_pusher function inside a multi/exec transaction
-    %% %%{ok, <<"OK">>} = eredis:q(C, ["MULTI"]),
-    eredis:q(C, ["MULTI"]),    
+    {ok, <<"OK">>} = eredis:q(C, ["MULTI"]),    
     {data, _Redis, _FileId, MyCounter }=sets:fold(fun redis_pusher/2,{data, C, FileId,0 },TrigramSet),
     %% %%{ok, [<<"OK">>, <<"OK">>]} = eredis:q(C, ["EXEC"]),
     eredis:q(C, ["EXEC"]),
     io:format("Elements pushed: ~p~n", [MyCounter]),
     {ok}.
 
-%% fold(Function, Acc0, Set) -> Acc1
-%% Types:
-%% Function = fun (E, AccIn) -> AccOut
-%% Acc0 = Acc1 = AccIn = AccOut = term()
-%% Set = set()
-%% Fold Function over every element in Set returning the final value of the accumulator.
-    
-%% Example of multi bulk
-%% {ok, <<"OK">>} = eredis:q(C, ["MULTI"]).
-%% {ok, <<"QUEUED">>} = eredis:q(C, ["SET", "foo", "bar"]).
-%% {ok, <<"QUEUED">>} = eredis:q(C, ["SET", "bar", "baz"]).
-%% {ok, [<<"OK">>, <<"OK">>]} = eredis:q(C, ["EXEC"]).
+
+%%TODO VIA file:list_dir be ready to do a major scan
+%% Setup a separate process for slurping trigrams
