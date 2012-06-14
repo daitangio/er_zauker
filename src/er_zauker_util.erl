@@ -104,7 +104,7 @@ load_file(Fname,C)->
     {data, _Redis, _FileId, MyCounter }=sets:fold(fun redis_pusher/2,{data, C, FileId,0 },TrigramSet),
     %% %%{ok, [<<"OK">>, <<"OK">>]} = eredis:q(C, ["EXEC"]),
     eredis:q(C, ["EXEC"]),
-    io:format("Elements pushed: ~p~n", [MyCounter]),
+    io:format("~p pushed: ~p~n", [Fname, MyCounter]),
     {ok}.
 
 

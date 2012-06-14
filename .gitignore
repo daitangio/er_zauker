@@ -26,3 +26,4 @@ priv/config
 *.wmtrace
 site/.eunit/
 .eunit
+doc
