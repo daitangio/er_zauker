@@ -1,30 +1,9 @@
 Note  -*- mode: org; -*-
 * Giovanni Giorgi Erlang Redis Study project 			       :spec:
-Dev platform is a virtualized
- Linux/Debian
- Git 1.x
- 
+This project is a Clone of Code Zauker Code indexer.
+It is written in Erlang, as a Testing Platform.
 
-Optional Platform: MacOSX Snow Leopard
-NB: la libreria cripto-2 ha una dipendenza binaria e quindi non funziona 
-su macosx
-
-** Target Platform
-Still unknown
-
-
- 
-** Risorse Nitrogen
-
-*** MySQL Driver EA Games					   :mysql:ea:
-https://github.com/Eonblast/Emysql
-
-
-* Piattaforma
-- [-]TODO: Testare se il multi piattaforma Linux/Mac funziona [1/2]
- - [ ] Valutare se usarlo
- - [X] Valutare anche SCALA
-* Url Vari							      :vario:testing:
-http://bob.ippoli.to/erl_testing_2011/
-http://beastwithin.org/users/wwwwolf/fantasy/avarthrel/blog/2011/05/lets-just-use-emacs.html
+Please take a look to
+ https://github.com/daitangio/code_zauker
+for more informations
 
