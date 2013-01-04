@@ -27,3 +27,5 @@ priv/config
 site/.eunit/
 .eunit
 doc
+waf_build
+waf-*

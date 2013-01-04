@@ -1,4 +1,12 @@
-Note  -*- mode: org; -*-
+# -*- mode: org ; mode: visual-line; coding: utf-8 -*- -*
+* How to build (new way)
+To build you need python.
+Use
+#+BEGIN_SRC shell
+python waf  distclean configure  build dist
+#+END_SRC
+to do a complete build using the new waf builder
+
 * Giovanni Giorgi Erlang Redis Study project 			       :spec:
 This project is a Clone of Code Zauker Code indexer.
 It is written in Erlang, as a Testing Platform.
