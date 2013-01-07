@@ -1,4 +1,5 @@
-Note  -*- mode: org; -*-
+# -*- mode: org ; mode: visual-line; coding: utf-8 -*- -*
+
 * Giovanni Giorgi Erlang Redis Study project 			       :spec:
 This project is a Clone of Code Zauker Code indexer.
 It is written in Erlang, as a Testing Platform.
@@ -7,3 +8,13 @@ Please take a look to
  https://github.com/daitangio/code_zauker
 for more informations
 
+* How to devel
+** Unit testing
+Use =make eunit=
+
+
+* 2013 Diary
+Add compatibility with code zauker 0.1.0
+
+fileDigest = Digest::MD5.hexdigest(File.read(filename))
+@redis.set("cz:md5:#{filename}",fileDigest)
