@@ -1,0 +1,2 @@
+defmodule SparseSet do
+end
