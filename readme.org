@@ -12,6 +12,9 @@ for more informations
 ** Unit testing
 Use =make eunit=
 
+** New deps:
+After adding deps, use 
+rebar get-deps compile
 
 * 2013 Diary
 Add compatibility with code zauker 0.1.0

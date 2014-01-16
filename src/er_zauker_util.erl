@@ -4,7 +4,8 @@
 -export([load_file/1,
 	 trigram/1,itrigram/1,split_on_set/1,split_on_set/2, get_unique_id/1, 
 	 split_file_in_trigrams/1, good_trigram/1, 
-	 md5/1, md5_file/1]).
+	 md5/1, md5_file/1
+	]).
 
 %%% Space guy is the tree-spaced guy
 -define(SPACE_GUY,"   ").
@@ -113,7 +114,7 @@ load_file(Fname,C)->
 %% http://www.enchantedage.com/hex-format-hash-for-md5-sha1-sha256-and-sha512
 %% http://rosettacode.org/wiki/MD5#Erlang
 my_hexstring(<<X:128/big-unsigned-integer>>) ->
-    string:to_upper(lists:flatten(io_lib:format("~32.16.0b", [X]))).
+    lists:flatten(io_lib:format("~32.16.0b", [X])).
 
 md5(String)->
     my_hexstring(erlang:md5(String)).
@@ -124,13 +125,8 @@ md5(String)->
 %%  SEE https://github.com/sdanzan/erlang-systools/blob/master/src/checksums.erl
 
 
-%% md5_file(Fname)->
-%%     case file:open(Fname,[read,{encoding,utf8}, {read_ahead,5000}]) of
-%% 	{ok,Fd}->
-%% 	    scan_file_md5(Fd,sets:new(),file:read_line(Fd));
-%% 	{error,Reason} ->
-%% 	    {error,Reason}
-%%     end.
+md5_file(Fname)->
+    er_checksums:md5sum(Fname).
 
 %% scan_file_md5(Fd,TrigramSet, {ok, StringToSplit})->
 %%     NewSet=split_on_set(StringToSplit,TrigramSet),    
