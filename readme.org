@@ -15,3 +15,15 @@ Please take a look to
  https://github.com/daitangio/code_zauker
 for more informations
 
+
+* How to develop: suggested installation
+** On Linux (Debian)
+Erlang R17 is needed. We strongly suggest Hipe (native compiler) on a 64bit installation
+Install Erlang Hipe and dev libs (use "aptitude versions" to get the complete list).
+For instance: 
+
+#+BEGIN_SRC shell
+ aptitude install erlang-base-hipe=1:17.1-dfsg-1  erlang-dev=1:17.1-dfsg-1 erlang-eunit=1:17.1-dfsg-1
+#+END_SRC
+
+
