@@ -4,7 +4,7 @@
 -behaviour(application).
 
 %% Application callbacks
--export([start/2, stop/1, startIndexer/0, indexerDaemon/0,indexDirectory/1]).
+-export([start/2, stop/1, startIndexer/0, indexerDaemon/0,indexDirectory/1,makeSearchTrigram/1,listFileIds/2,map_ids_to_files/2,erlist/1]).
 
 %% ===================================================================
 %% Application callbacks
@@ -19,6 +19,8 @@ stop(_State) ->
 
 startIndexer()->
     register(er_zauker_indexer,spawn(fun indexerDaemon/0)).
+
+
 
 
 
@@ -48,3 +50,48 @@ priv_index_file(Filename, _Acc)->
     io:format("**Indexing File  ~p~n",[Filename]),
     er_zauker_indexer!{self(),file,Filename}.
 
+%%% Client SIDE API
+
+ %% def split_in_trigrams(term, prefix)
+ %%      trigramInAnd=Set.new()
+ %%      # Search=> Sea AND ear AND arc AND rch
+ %%      for j in 0...term.length
+ %%        currentTrigram=term[j,GRAM_SIZE]
+ %%        if currentTrigram.length <GRAM_SIZE
+ %%          # We are at the end...
+ %%          break
+ %%        end
+ %%        trigramInAnd.add("#{prefix}:#{currentTrigram}")
+ %%      end
+ %%      return trigramInAnd
+ %%    end
+
+erlist(SearchString)->
+    {ok,C}=eredis:start_link(),
+    Sgram=makeSearchTrigram(SearchString),
+    Ids=listFileIds(Sgram,C),
+    map_ids_to_files(Ids,C).
+
+map_ids_to_files([Id1|Rest],C)->
+    {ok, Filename}=eredis:q(C,["GET", string:concat("fscan:id2filename:",Id1)]),
+    [Filename | map_ids_to_files(Rest,C)];
+
+map_ids_to_files([],_C)->
+    [].
+
+listFileIds(TrigramList,Redis)->
+    %% @redis.sinter(*trigramInAnd)
+    {ok, Stuff}=eredis:q(Redis,["SINTER" | TrigramList]),
+    Stuff.
+
+makeSearchTrigram(Term)->
+    makeSearchTrigramWithPrefix(string:to_lower(Term),"trigram:ci:").
+
+makeSearchTrigramWithPrefix(ToSplit,Prefix)->
+    Size = string:len(ToSplit),
+    if Size =<3 -> 
+	    [string:concat(Prefix,ToSplit)];
+       true ->
+	    CurrentGram=string:substr(ToSplit,1,3),
+	    [string:concat(Prefix,CurrentGram) | makeSearchTrigramWithPrefix(string:substr(ToSplit,2),Prefix)]
+    end.

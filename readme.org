@@ -1,20 +1,25 @@
 # -*- mode: org ; mode: visual-line; coding: utf-8 -*- -*
-<<<<<<< HEAD
+
 * What is ErZauker?
 
 Er Zauker is an erlang-based search engine for programming languages. 
 Er Zauker is based from ideas taken by old Google Code Search and uses Redis as storage engine.
 It is a different implementation of the Code Zauker project.
 
-
 * How to build
 make 
-* How to try (indexing its own code)
+* Try it how
+Index the own code,,
 #+BEGIN_SRC shell
  make test-indexer
 #+END_SRC
-=======
->>>>>>> old2import
+...then try
+#+BEGIN_SRC erlang
+er_zauker_app:erlist("trigram").
+#+END_SRC
+from the erlang command line.
+You will got a list of file which *could* contain the keyword.
+
 
 * Giovanni Giorgi Erlang Redis Study project 			       :spec:
 This project is a Clone of Code Zauker Code indexer.
@@ -24,7 +29,7 @@ Please take a look to
  https://github.com/daitangio/code_zauker
 for more informations
 
-<<<<<<< HEAD
+
 
 * How to develop: suggested installation
 ** On Linux (Debian jessie)
@@ -49,32 +54,33 @@ i   erlang-xmerl                    - Erlang/OTP XML tools
 
 Complete list (via =dpkg --get-selections | grep erlang=):
 
-| Package name         | Suggested version |
-| erlang-asn1          | 1:17.1-dfsg-3     |
-| erlang-base-hipe     |                   |
-| erlang-crypto        |                   |
-| erlang-debugger      |                   |
-| erlang-dev           |                   |
-| erlang-et            |                   |
-| erlang-eunit         |                   |
-| erlang-gs            |                   |
-| erlang-inets         |                   |
-| erlang-mnesia        |                   |
-| erlang-observer      |                   |
-| erlang-public-key    |                   |
-| erlang-runtime-tools |                   |
-| erlang-snmp          |                   |
-| erlang-ssh           |                   |
-| erlang-ssl           |                   |
-| erlang-syntax-tools  |                   |
-| erlang-test-server   |                   |
-| erlang-tools         |                   |
-| erlang-webtool       |                   |
-| erlang-wx            |                   |
-| erlang-xmerl         |                   |
-| erlang-syntax-tools  |                   |
-=======
-* How to devel
+| Package name         | Suggested version              |
+| erlang-asn1          | 1:17.1-dfsg-3                  |
+| erlang-base-hipe     |                                |
+| erlang-crypto        |                                |
+| erlang-debugger      |                                |
+| erlang-dev           |                                |
+| erlang-et            |                                |
+| erlang-eunit         |                                |
+| erlang-gs            |                                |
+| erlang-inets         |                                |
+| erlang-mnesia        |                                |
+| erlang-observer      |                                |
+| erlang-public-key    |                                |
+| erlang-runtime-tools |                                |
+| erlang-snmp          |                                |
+| erlang-ssh           |                                |
+| erlang-ssl           |                                |
+| erlang-syntax-tools  |                                |
+| erlang-test-server   |                                |
+| erlang-tools         |                                |
+| erlang-webtool       |                                |
+| erlang-wx            |                                |
+| erlang-xmerl         |                                |
+| erlang-syntax-tools  |                                |
+| erlang-pman          | Anyway observer is the new guy |
+|                      |                                |
+
 ** Unit testing
 Use =make eunit=
 
@@ -87,4 +93,4 @@ Add compatibility with code zauker 0.1.0
 
 fileDigest = Digest::MD5.hexdigest(File.read(filename))
 @redis.set("cz:md5:#{filename}",fileDigest)
->>>>>>> old2import
+

@@ -11,7 +11,7 @@ clean:
 	rm -rf .eunit/*
 
 cli:
-	erl  -name Cli -setCookie ErZaukerCli  -pa lib/eredis/ebin/ -pa ebin/ -eval 'pman:start(),er_zauker_app:startIndexer(),er_zauker_indexer!{self(),directory,"/k/code/code_zauker/lib"}.'
+	erl  -name Cli -setCookie ErZaukerCli  -pa lib/eredis/ebin/ -pa ebin/ -eval 'observer:start(),er_zauker_app:startIndexer().'
 
 test-indexer:
 	echo Indexing demo data

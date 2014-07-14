@@ -49,8 +49,9 @@ incr_id_test_disabled()->
     ?assert(    list_to_integer(MyTestId) >= 0).
 
 split_trigram_1_test()->
-    {ok,TrigramSet}=er_zauker_util:split_file_in_trigrams("../readme.org"),
-    ?debugVal(sets:to_list(TrigramSet)).
+    {ok,TrigramSet}=er_zauker_util:split_file_in_trigrams("../readme.org"),	
+    ?debugVal(sets:to_list(TrigramSet)),
+	?debugTime("Simple split of readme taken", er_zauker_util:split_file_in_trigrams("../readme.org")).
 
 
 %% See http://sacharya.com/md5-in-erlang/
