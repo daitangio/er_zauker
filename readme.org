@@ -17,13 +17,49 @@ for more informations
 
 
 * How to develop: suggested installation
-** On Linux (Debian)
+** On Linux (Debian jessie)
 Erlang R17 is needed. We strongly suggest Hipe (native compiler) on a 64bit installation
 Install Erlang Hipe and dev libs (use "aptitude versions" to get the complete list).
-For instance: 
+On Debian the R17 is available only under 'testing' branch (i.e. 1:17.1-dfsg-3)
 
+The minimum required sets depends on your distribution. On Debian try:
+
+With aptitude
 #+BEGIN_SRC shell
- aptitude install erlang-base-hipe=1:17.1-dfsg-1  erlang-dev=1:17.1-dfsg-1 erlang-eunit=1:17.1-dfsg-1
+i   erlang-base-hipe                - Erlang/OTP HiPE enabled virtual machine an
+i   erlang-debugger                 - Erlang/OTP application for debugging and t
+i   erlang-dev                      - Erlang/OTP development libraries and heade
+i   erlang-eunit                    - Erlang/OTP module for unit testing        
+i   erlang-snmp                     - Erlang/OTP SNMP applications              
+i   erlang-ssh                      - Erlang/OTP implementation of SSH protocol 
+i   erlang-syntax-tools             - Erlang/OTP modules for handling abstract E
+i   erlang-test-server              - Erlang/OTP server for automated applicatio
+i   erlang-xmerl                    - Erlang/OTP XML tools                      
 #+END_SRC
 
+Complete list (via =dpkg --get-selections | grep erlang=):
 
+| Package name         | Suggested version |
+| erlang-asn1          | 1:17.1-dfsg-3     |
+| erlang-base-hipe     |                   |
+| erlang-crypto        |                   |
+| erlang-debugger      |                   |
+| erlang-dev           |                   |
+| erlang-et            |                   |
+| erlang-eunit         |                   |
+| erlang-gs            |                   |
+| erlang-inets         |                   |
+| erlang-mnesia        |                   |
+| erlang-observer      |                   |
+| erlang-public-key    |                   |
+| erlang-runtime-tools |                   |
+| erlang-snmp          |                   |
+| erlang-ssh           |                   |
+| erlang-ssl           |                   |
+| erlang-syntax-tools  |                   |
+| erlang-test-server   |                   |
+| erlang-tools         |                   |
+| erlang-webtool       |                   |
+| erlang-wx            |                   |
+| erlang-xmerl         |                   |
+| erlang-syntax-tools  |                   |
