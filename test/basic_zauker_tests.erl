@@ -20,7 +20,20 @@ map_assign_test()->
 	P = #{ name=> "Giovanni", surname=>"Giorgi" },
 	Page = P#{ born => 1974 },
 	Pgrampa = Page#{ name := "Giorgio", born := 1918},
-	?assertEqual(1,1).
+	?debugVal(Pgrampa),
+	%% Matching is done via := and not all field are required:
+	#{  born:=WhenGrampaIsBorn } =Pgrampa,
+	GrampaAge=2014-WhenGrampaIsBorn,
+	?debugVal(GrampaAge),
+	?assertEqual(96,GrampaAge).
+
+
+name_in_fun_test() ->
+	F = fun  Fact(0) -> 1; 
+              Fact(N) -> N * Fact(N - 1) 
+        end,	
+	?debugVal(F(3)).
+	
 
 
 trigram_split_test()->

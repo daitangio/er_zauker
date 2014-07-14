@@ -1,11 +1,17 @@
 # -*- mode: org ; mode: visual-line; coding: utf-8 -*- -*
-* How to build (new way)
-To build you need python.
-Use
+* What is ErZauker?
+
+Er Zauker is an erlang-based search engine for programming languages. 
+Er Zauker is based from ideas taken by old Google Code Search and uses Redis as storage engine.
+It is a different implementation of the Code Zauker project.
+
+
+* How to build
+make 
+* How to try (indexing its own code)
 #+BEGIN_SRC shell
-python waf  distclean configure  build dist
+ make test-indexer
 #+END_SRC
-to do a complete build using the new waf builder
 
 * Giovanni Giorgi Erlang Redis Study project 			       :spec:
 This project is a Clone of Code Zauker Code indexer.

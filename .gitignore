@@ -29,3 +29,4 @@ site/.eunit/
 doc
 waf_build
 waf-*
+/ebin/
