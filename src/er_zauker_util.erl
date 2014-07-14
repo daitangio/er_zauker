@@ -2,7 +2,10 @@
 -author("giovanni.giorgi@gioorgi.com").
 
 -export([load_file/1,
-	 trigram/1,itrigram/1,split_on_set/1,split_on_set/2, get_unique_id/1, split_file_in_trigrams/1, good_trigram/1]).
+	 trigram/1,itrigram/1,split_on_set/1,split_on_set/2, get_unique_id/1, 
+	 split_file_in_trigrams/1, good_trigram/1, 
+	 md5/1, md5_file/1
+	]).
 
 %%% Space guy is the tree-spaced guy
 -define(SPACE_GUY,"   ").
@@ -107,6 +110,35 @@ load_file(Fname,C)->
     io:format("~p pushed: ~p~n", [Fname, MyCounter]),
     {ok}.
 
+%% See http://sacharya.com/md5-in-erlang/
+%% http://www.enchantedage.com/hex-format-hash-for-md5-sha1-sha256-and-sha512
+%% http://rosettacode.org/wiki/MD5#Erlang
+my_hexstring(<<X:128/big-unsigned-integer>>) ->
+    lists:flatten(io_lib:format("~32.16.0b", [X])).
+
+md5(String)->
+    my_hexstring(erlang:md5(String)).
 
 %%TODO VIA file:list_dir be ready to do a major scan
 %% Setup a separate process for slurping trigrams
+
+%%  SEE https://github.com/sdanzan/erlang-systools/blob/master/src/checksums.erl
+
+
+md5_file(Fname)->
+    er_checksums:md5sum(Fname).
+
+%% scan_file_md5(Fd,TrigramSet, {ok, StringToSplit})->
+%%     NewSet=split_on_set(StringToSplit,TrigramSet),    
+%%     scan_file_md5(Fd,NewSet,file:read_line(Fd));
+
+%% scan_file_md5(Fd,TrigramSet, eof)->
+%%     file:close(Fd),
+%%     % Remove the bad guys right now
+%%     FilteredSet=sets:filter(fun good_trigram/1,TrigramSet),
+%%     io:format("*Set Size:~p~n",[sets:size(FilteredSet)]),
+%%     {ok,FilteredSet};
+
+%% scan_file_md5(Fd, _TrigramSet, {error,Reason}) ->
+%%     file:close(Fd),
+%%     {error,Reason}. 

@@ -53,6 +53,37 @@ split_trigram_1_test()->
     ?debugVal(sets:to_list(TrigramSet)).
 
 
+%% See http://sacharya.com/md5-in-erlang/
+%% http://www.enchantedage.com/hex-format-hash-for-md5-sha1-sha256-and-sha512
+hexstring(<<X:128/big-unsigned-integer>>) ->
+    lists:flatten(io_lib:format("~32.16.0b", [X])).
+
+md5_t1_test()->
+    %% hexstring(<>) -> lists:flatten(io_lib:format(”~32.16.0b”, [X])).
+    Checksum=erlang:md5("Er Zauker Rulez!"),
+    ?assertEqual("339ba17e09c7834ab85b93009154da7c",hexstring(Checksum)  ).
+
+md5_test()->   
+    ?assertEqual("339ba17e09c7834ab85b93009154da7c",
+		 er_zauker_util:md5("Er Zauker Rulez!")).
+
+%% Try to slurp a test file
+
+md5sum_raw_test()->
+    %% See File test_files/md5-sum-checksums.txt
+    %% for expected values
+    Checksum=er_checksums:md5sum("../test_files/md5-test.txt"),
+    ?assertEqual("967a905f9ecd311e14e7582bc5b96898",Checksum).
+
+
+md5_file1_test()->
+     er_zauker_util:md5_file("../test_files/md5-test.txt").
+
+md5_file2_test()->
+     ?assertEqual("cf5c2458a05d9f0870cd9fbd3e01fa0e",
+		  er_zauker_util:md5_file("../test_files/md5-test2.txt")).
+
+
 %% -export([print_file_name/2]).
 
 print_file_name(F,_A)->
@@ -60,6 +91,9 @@ print_file_name(F,_A)->
 
 file_scan_test_disab()->
     filelib:fold_files("/tmp",".*",true, fun print_file_name/2,{nothing}).
+
+
+
     
 -endif.
 

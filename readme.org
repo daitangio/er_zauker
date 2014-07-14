@@ -1,4 +1,5 @@
 # -*- mode: org ; mode: visual-line; coding: utf-8 -*- -*
+<<<<<<< HEAD
 * What is ErZauker?
 
 Er Zauker is an erlang-based search engine for programming languages. 
@@ -12,6 +13,8 @@ make
 #+BEGIN_SRC shell
  make test-indexer
 #+END_SRC
+=======
+>>>>>>> old2import
 
 * Giovanni Giorgi Erlang Redis Study project 			       :spec:
 This project is a Clone of Code Zauker Code indexer.
@@ -21,6 +24,7 @@ Please take a look to
  https://github.com/daitangio/code_zauker
 for more informations
 
+<<<<<<< HEAD
 
 * How to develop: suggested installation
 ** On Linux (Debian jessie)
@@ -69,3 +73,18 @@ Complete list (via =dpkg --get-selections | grep erlang=):
 | erlang-wx            |                   |
 | erlang-xmerl         |                   |
 | erlang-syntax-tools  |                   |
+=======
+* How to devel
+** Unit testing
+Use =make eunit=
+
+** New deps:
+After adding deps, use 
+rebar get-deps compile
+
+* 2013 Diary
+Add compatibility with code zauker 0.1.0
+
+fileDigest = Digest::MD5.hexdigest(File.read(filename))
+@redis.set("cz:md5:#{filename}",fileDigest)
+>>>>>>> old2import
