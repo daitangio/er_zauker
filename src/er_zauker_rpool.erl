@@ -2,23 +2,25 @@
 -author("giovanni.giorgi@gioorgi.com").
 
 
--compile(export_all).
+-export([startRedisPool/0,wait4Connection/0,releaseConnection/1]).
 
 %%% Too many redis connection are bad bacause lead to
 %% =ERROR REPORT==== 15-Jul-2014::11:38:05 ===
 %% Error in process <0.10173.0> on node 'Cli@eva1.esp.internal.usinet.it' with exit value: {{badmatch,{error,{connection_error,{connection_error,timeout}}}},[{er_zauker_util,load_file,1,[{file,"src/er_zauker_util.erl"},{line,89}]}]}
-%% So to avoid it we create a simple 'semaphre' to ask if we can proceed or not
+%% So to avoid it we create a simple 'semaphore' to ask if we can proceed or not: this is the responsability
+%% of er_zauker_rpool module
+
 
 
 startRedisPool()->
     register(rpool,spawn(fun rpoolman/0)).
 
 %%% Define here max connections.
-%%% Too high value (9000) get worst performance if redis run on the same machine.
-%%% A lower value give a more balanced timing
+%%% To track it use  the shell command
+%%% watch -d 'redis-cli client list | wc -l'
+%%% Sometime the system is so fast will exceed this value
 rpoolman()->
-    %%rpool(1000).
-    rpool(264).
+    rpool(4000).
 
 
 
@@ -71,6 +73,6 @@ rpoolReleaseOnlyMode(FirstWaitingPid)->
 	{_Pid, release, Connection2Release}->
 	    eredis:stop(Connection2Release),
 	    FirstWaitingPid!{ok},
-	    %% Now do a double bump
-	    rpool(2)
+	    %% Now go up: put here rpool(2) to dynamically enlarge the pool
+	    rpool(1)
     end.    

@@ -33,24 +33,26 @@ indexerDaemon()->
 	    Pid!{worker, NewPid},
 	    indexerDaemon();	
 	{Pid,directory, DirectoryPath} ->
-	    io:format("Recursive Indexing...~p~n",[DirectoryPath]),
-	    indexDirectory(DirectoryPath),
-	    Pid!{scanned_started},
+	    %%io:format("Recursive Indexing...~p~n",[DirectoryPath]),
+	    Files2Index=indexDirectory(DirectoryPath),
+	    Pid!{scan_started,Files2Index},
 	    indexerDaemon();
 	{Pid,stop} ->
 	    Pid!{stoped,self()}
     end.
 	 
 
-%% Basic indexer uses mulitple workers...
+%% @doc returns the number of file to index.
 indexDirectory(Directory)->    
-    filelib:fold_files(Directory, ".*", true, fun priv_index_file/2, {nothing}),
-    io:format("Scanned Dir:~p~n",[Directory]).
+    Files2Scan=filelib:fold_files(Directory, ".*", true, fun priv_index_file/2, 0),
+    io:format("Scanned Dir:~p Files found:~p ~n",[Directory,Files2Scan]),
+    Files2Scan.
 
 %% Very aggressive Spawn
-priv_index_file(Filename, _Acc)->
+priv_index_file(Filename, Acc)->
     %%io:format("**Indexing File  ~p~n",[Filename]),
-    er_zauker_indexer!{self(),file,Filename}.
+    er_zauker_indexer!{self(),file,Filename},
+    Acc+1.
 
 %%% Client SIDE API
 

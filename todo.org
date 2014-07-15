@@ -1,0 +1,5 @@
+* TODO 2013 Diary
+Add compatibility with code zauker 0.1.0
+
+fileDigest = Digest::MD5.hexdigest(File.read(filename))
+@redis.set("cz:md5:#{filename}",fileDigest)

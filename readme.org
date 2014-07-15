@@ -4,12 +4,15 @@
 
 Er Zauker is an erlang-based search engine for programming languages. 
 Er Zauker is based from ideas taken by old Google Code Search and uses Redis as storage engine.
-It is a different implementation of the Code Zauker project.
+For more information please look at http://gioorgi.com/tag/code-zauker/
 
 * How to build
-make 
-* Try it how
-Index the own code,,
+Just launch
+#+BEGIN_SRC sh
+  make 
+#+END_SRC
+
+Then to index the erzauker own erlang code
 #+BEGIN_SRC shell
  make test-indexer
 #+END_SRC
@@ -19,16 +22,27 @@ er_zauker_app:erlist("trigram").
 #+END_SRC
 from the erlang command line.
 You will got a list of file which *could* contain the keyword.
+If no errors araise, you are ready to do a real search
+
+** How to do a search
+In the bin directory you will find czgrep. 
+Use czgrep to search on the code you just indexed:
+ czgrep @doc
+to find all the line containg the "doc" string.
+Rember: /The minimal string size is 3 char (a trigram)/
+czgreap use =er_zauker_app:erlist= function.
 
 
-** More information on Code Zauker
-Please take a look to
- https://github.com/daitangio/code_zauker
-for more informations
-
-
+* Improvments
+The current version v0.0.2 is still not production ready. 
+Its speed is good but it can be improved a lot.
 
 * How to develop: suggested installation
+** How to monitor redis
+Use =redis-cli monitor= to monitor actons and use
+redis-cli client list | wc -l
+to get a crude list of connected client
+
 ** On Linux (Debian jessie)
 Erlang R17 is needed. We strongly suggest Hipe (native compiler) on a 64bit installation
 Install Erlang Hipe and dev libs (use "aptitude versions" to get the complete list).
@@ -81,13 +95,9 @@ Complete list (via =dpkg --get-selections | grep erlang=):
 ** Unit testing
 Use =make eunit=
 
-** New deps:
+** How to refresh after adding new deps:
 After adding deps, use 
 rebar get-deps compile
 
-* 2013 Diary
-Add compatibility with code zauker 0.1.0
 
-fileDigest = Digest::MD5.hexdigest(File.read(filename))
-@redis.set("cz:md5:#{filename}",fileDigest)
 

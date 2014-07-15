@@ -131,8 +131,9 @@ listIds_test()->
 map_ids_to_files_test()->
     {ok,R}=eredis:start_link(),
     Files=er_zauker_app:map_ids_to_files(["1","2"],R),
+    %% TODO CHECK LEN IS 2
     ?debugVal(Files).
-    
+
 %% makeIntegrationSearch_test()->
 %%     R=eredis:start_link(),
 %%     T=er_zauker_app:makeSearchTrigram("herhec"),
