@@ -66,7 +66,7 @@ scan_file_trigrams(Fd,TrigramSet, eof)->
     file:close(Fd),
     % Remove the bad guys right now
     FilteredSet=sets:filter(fun good_trigram/1,TrigramSet),
-    io:format("*Set Size:~p~n",[sets:size(FilteredSet)]),
+    %% io:format("*Set Size:~p~n",[sets:size(FilteredSet)]),
     {ok,FilteredSet};
 
 scan_file_trigrams(Fd, _TrigramSet, {error,Reason}) ->
@@ -84,29 +84,33 @@ redis_pusher(Trigram, Accumulator)->
 
 %% @doc Master Entry Point:
 %% Load a file, split in trigrams and push on Redis
-%% The file split is 
+%% Problem: it opens too much connections to redis
+%% so it shoud be possible to 'pool' them somewhat
 load_file(Fname)->
-    {ok, C} = eredis:start_link(),
-    load_file(Fname,C).
+    %%{ok, C} = eredis:start_link(),
+    C=er_zauker_rpool:wait4Connection(),
+    load_file(Fname,C),
+    er_zauker_rpool:releaseConnection(C).
 
 load_file(Fname,C)->
     {ok, Stuff}=eredis:q(C,["GET",string:concat("fscan:id:",Fname)]),
     case Stuff of
 	undefined -> FileId=er_zauker_util:get_unique_id(C),
+    		     %%io:format("New FileId:~p For File: ~p~n",[FileId,Fname]),
 		     eredis:q(C,["SET", string:concat("fscan:id:",Fname),FileId]),
-		     eredis:q(C,["SET", string:concat("fscan:id2filename:",FileId),Fname]),
-		     io:format("New FileId:~p For File: ~p~n",[FileId,Fname]);
-	_ -> FileId=binary_to_list(Stuff),
-	     io:format("Already Found FileId:~p For File: ~p~n",[FileId,Fname])
+		     eredis:q(C,["SET", string:concat("fscan:id2filename:",FileId),Fname]);
+	_ -> %%io:format("Already Found FileId:~p For File: ~p~n",[FileId,Fname]),
+	     FileId=binary_to_list(Stuff)	     
     end,
-    io:format("Splitting files...~n"),
+    %%io:format("Splitting files...~n"),
     {ok, TrigramSet}=split_file_in_trigrams(Fname),
-    io:format("Pushing data...~n"),
+    %% io:format("Pushing data...~n"),
     %% %% Now wrap the redis_pusher function inside a multi/exec transaction
     {ok, <<"OK">>} = eredis:q(C, ["MULTI"]),    
     {data, _Redis, _FileId, MyCounter }=sets:fold(fun redis_pusher/2,{data, C, FileId,0 },TrigramSet),
     %% %%{ok, [<<"OK">>, <<"OK">>]} = eredis:q(C, ["EXEC"]),
     eredis:q(C, ["EXEC"]),
+    %% Signal file pushed
     io:format("~p pushed: ~p~n", [Fname, MyCounter]),
     {ok}.
 

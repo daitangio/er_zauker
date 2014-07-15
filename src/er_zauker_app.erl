@@ -18,6 +18,7 @@ stop(_State) ->
 
 
 startIndexer()->
+    er_zauker_rpool:startRedisPool(),
     register(er_zauker_indexer,spawn(fun indexerDaemon/0)).
 
 
@@ -41,30 +42,18 @@ indexerDaemon()->
     end.
 	 
 
-%% Basic indexer uses mulitple workers..
+%% Basic indexer uses mulitple workers...
 indexDirectory(Directory)->    
     filelib:fold_files(Directory, ".*", true, fun priv_index_file/2, {nothing}),
     io:format("Scanned Dir:~p~n",[Directory]).
 
+%% Very aggressive Spawn
 priv_index_file(Filename, _Acc)->
-    io:format("**Indexing File  ~p~n",[Filename]),
+    %%io:format("**Indexing File  ~p~n",[Filename]),
     er_zauker_indexer!{self(),file,Filename}.
 
 %%% Client SIDE API
 
- %% def split_in_trigrams(term, prefix)
- %%      trigramInAnd=Set.new()
- %%      # Search=> Sea AND ear AND arc AND rch
- %%      for j in 0...term.length
- %%        currentTrigram=term[j,GRAM_SIZE]
- %%        if currentTrigram.length <GRAM_SIZE
- %%          # We are at the end...
- %%          break
- %%        end
- %%        trigramInAnd.add("#{prefix}:#{currentTrigram}")
- %%      end
- %%      return trigramInAnd
- %%    end
 
 erlist(SearchString)->
     {ok,C}=eredis:start_link(),

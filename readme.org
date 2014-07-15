@@ -13,7 +13,7 @@ Index the own code,,
 #+BEGIN_SRC shell
  make test-indexer
 #+END_SRC
-...then try
+then press enter and try
 #+BEGIN_SRC erlang
 er_zauker_app:erlist("trigram").
 #+END_SRC
@@ -21,10 +21,7 @@ from the erlang command line.
 You will got a list of file which *could* contain the keyword.
 
 
-* Giovanni Giorgi Erlang Redis Study project 			       :spec:
-This project is a Clone of Code Zauker Code indexer.
-It is written in Erlang, as a Testing Platform.
-
+** More information on Code Zauker
 Please take a look to
  https://github.com/daitangio/code_zauker
 for more informations
@@ -61,7 +58,7 @@ Complete list (via =dpkg --get-selections | grep erlang=):
 | erlang-debugger      |                                |
 | erlang-dev           |                                |
 | erlang-et            |                                |
-| erlang-eunit         |                                |
+| erlang-eunit         | Only for developing            |
 | erlang-gs            |                                |
 | erlang-inets         |                                |
 | erlang-mnesia        |                                |
@@ -79,7 +76,7 @@ Complete list (via =dpkg --get-selections | grep erlang=):
 | erlang-xmerl         |                                |
 | erlang-syntax-tools  |                                |
 | erlang-pman          | Anyway observer is the new guy |
-|                      |                                |
+| erlang-edoc          | Only needed for developing     |
 
 ** Unit testing
 Use =make eunit=
