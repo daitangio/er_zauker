@@ -10,12 +10,13 @@ clean:
 	@$(REBAR) clean
 	rm -rf .eunit/*
 
-cli:
+cli:	compile
 	erl  -name Cli -setCookie ErZaukerCli  -pa lib/eredis/ebin/ -pa ebin/ -eval 'observer:start(),er_zauker_app:startIndexer().'
 
-test-indexer:
+test-indexer: compile
 	echo Indexing demo data
 	erl  -name Cli -setCookie ErZaukerCli  -pa lib/eredis/ebin/ -pa ebin/ -eval 'er_zauker_app:startIndexer(),er_zauker_indexer!{self(),directory,"src/"}.'
+
 
 check:
 	@$(REBAR) skip_deps=true build-plt dialyze 

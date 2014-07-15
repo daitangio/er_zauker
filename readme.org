@@ -33,10 +33,6 @@ Rember: /The minimal string size is 3 char (a trigram)/
 czgreap use =er_zauker_app:erlist= function.
 
 
-* Improvments
-The current version v0.0.2 is still not production ready. 
-Its speed is good but it can be improved a lot.
-
 * How to develop: suggested installation
 ** How to monitor redis
 Use =redis-cli monitor= to monitor actons and use
