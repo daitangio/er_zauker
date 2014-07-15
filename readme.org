@@ -27,10 +27,16 @@ If no errors araise, you are ready to do a real search
 ** How to do a search
 In the bin directory you will find czgrep. 
 Use czgrep to search on the code you just indexed:
+#+BEGIN_SRC shell
  czgrep @doc
+#+END_SRC
 to find all the line containg the "doc" string.
+
 Rember: /The minimal string size is 3 char (a trigram)/
-czgreap use =er_zauker_app:erlist= function.
+
+By the way czgrep use =er_zauker_app:erlist= function to ask redis the file which could contain all the trigrams of the search word.
+On a very huge set of files czgrep will easily outperform 'grep -r',
+
 
 
 * How to develop: suggested installation
