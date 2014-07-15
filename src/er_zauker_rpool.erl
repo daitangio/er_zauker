@@ -15,12 +15,12 @@
 startRedisPool()->
     register(rpool,spawn(fun rpoolman/0)).
 
-%%% Define here max connections.
-%%% To track it use  the shell command
+%%% @doc Define here max connections. Erlang will magically optimize the load around this value.
+%%% To track it from the redis side use  the follwing  shell command
 %%% watch -d 'redis-cli client list | wc -l'
-%%% Sometime the system is so fast will exceed this value
+%%% it will spot errors!
 rpoolman()->
-    rpool(4000).
+    rpool(9000).
 
 
 
@@ -46,7 +46,7 @@ releaseConnection(C)->
 
 
 rpool(RemainingConnections)->
-    if RemainingConnections <5 -> io:format("RedisFree Connections: ~p~n",[RemainingConnections]);
+    if RemainingConnections <3 -> io:format("RedisFree Connections: ~p~n",[RemainingConnections]);
        true -> nothing2say
     end,
     receive 
@@ -73,6 +73,6 @@ rpoolReleaseOnlyMode(FirstWaitingPid)->
 	{_Pid, release, Connection2Release}->
 	    eredis:stop(Connection2Release),
 	    FirstWaitingPid!{ok},
-	    %% Now go up: put here rpool(2) to dynamically enlarge the pool
-	    rpool(1)
+	    %% Now we have just consumed the resource so we have zero resources...
+	    rpool(0)
     end.    
