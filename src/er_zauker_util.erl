@@ -1,9 +1,12 @@
 -module(er_zauker_util).
 -author("giovanni.giorgi@gioorgi.com").
 
+%% hipe optimization: please compile this module in x64
+-compile([native]).
+
 -export([load_file_if_needed/1,
 	 load_file/1,
-	 trigram/1,itrigram/1,split_on_set/1,split_on_set/2, get_unique_id/1, 
+	 trigram/1,itrigram/1,split_on_set/1,split_on_set/2, 
 	 split_file_in_trigrams/1, good_trigram/1, 
 	 md5/1, md5_file/1
 	]).
@@ -137,7 +140,7 @@ load_file(Fname)->
 load_file(Fname,C)->
     {ok, Stuff}=eredis:q(C,["GET",string:concat("fscan:id:",Fname)]),
     case Stuff of
-	undefined -> FileId=er_zauker_util:get_unique_id(C),
+	undefined -> FileId=get_unique_id(C),
     		     io:format("New FileId:~p For File: ~p~n",[FileId,Fname]),
 		     eredis:q(C,["SET", string:concat("fscan:id:",Fname),FileId]),
 		     eredis:q(C,["SET", string:concat("fscan:id2filename:",FileId),Fname]);

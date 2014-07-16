@@ -39,6 +39,14 @@ On a very huge set of files czgrep will easily outperform 'grep -r',
 
 
 
+
+* Upcoming New feature
+v0.0.3 will spot a fast md5 checksum to avoid reindexing already indexed data.
+Also upon common process crash, the redis resource will be freed.
+
+* Known limitations
+It is not yet possible to index iso-8859 files.
+
 * How to develop: suggested installation
 ** How to monitor redis
 Use =redis-cli monitor= to monitor actons and use

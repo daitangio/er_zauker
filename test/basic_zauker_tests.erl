@@ -184,7 +184,8 @@ seach_test_() ->
        fun search_works2/0,
        fun subgram_does_not_work/0,
        fun search_works_no_matchtest/0,
-       fun iso_8859_breaks/0
+       fun iso_8859_breaks/0,
+       fun space_guy_never_recoded/0
       ]
      }
     }.
@@ -221,6 +222,12 @@ search_works_no_matchtest()->
 
 iso_8859_breaks()->
     ?assertMatch( {error,_},er_zauker_util:load_file("../test_files/iso-8859-file.txt")).
+
+
+space_guy_never_recoded()->
+    er_zauker_util:load_file("../test_files/test_all_spaces.txt"),
+    SearchFilesResult=er_zauker_app:erlist("    "),
+    ?assertEqual([],SearchFilesResult).
  
 %%    
     
