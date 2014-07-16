@@ -154,6 +154,7 @@ generator_test_() ->
     {setup, fun setup/0, fun cleanup/1,
      {inorder,
       [
+       fun md5_search_works/0,
        fun search_works1/0,
        fun search_works2/0,
        fun subgram_does_not_work/0,
@@ -163,6 +164,12 @@ generator_test_() ->
     }.
 
 
+md5_search_works()->
+    er_zauker_util:load_file_if_needed("../test_files/test_text1.txt"),
+    er_zauker_util:load_file_if_needed("../test_files/test_text1.txt"),
+    SearchFilesResult=er_zauker_app:erlist("califragilisti"),
+    ?assertEqual([<<"../test_files/test_text1.txt">>],SearchFilesResult).
+    
 
 search_works1()->    
     er_zauker_util:load_file("../test_files/test_text1.txt"),

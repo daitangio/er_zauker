@@ -29,7 +29,7 @@ indexerDaemon()->
     receive
 	{Pid,file,FileToIndex}->
 	    % Spawn a worker for this guy...
-	    NewPid=spawn(er_zauker_util, load_file,[FileToIndex]),
+	    NewPid=spawn(er_zauker_util, load_file_if_needed,[FileToIndex]),
 	    Pid!{worker, NewPid},
 	    indexerDaemon();	
 	{Pid,directory, DirectoryPath} ->

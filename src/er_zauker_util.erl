@@ -1,7 +1,8 @@
 -module(er_zauker_util).
 -author("giovanni.giorgi@gioorgi.com").
 
--export([load_file/1,
+-export([load_file_if_needed/1,
+	 load_file/1,
 	 trigram/1,itrigram/1,split_on_set/1,split_on_set/2, get_unique_id/1, 
 	 split_file_in_trigrams/1, good_trigram/1, 
 	 md5/1, md5_file/1
@@ -43,6 +44,16 @@ get_unique_id(C)->
     {ok, ID}=eredis:q(C, ["INCR", "fscan:nextId"]),
     binary_to_list(ID).
 
+%% split_file_in_trigrams(Fname)->
+%%     try split_file_in_trigrams_priv(Fname) of
+%% 	Result ->
+%% 	    Result	 
+%%     catch
+%% 	error:Error ->
+%% 	    io:format("~p Error processing:~p~n",[Error,Fname]),
+%% 	    throw(Error)
+%%     end.
+
 %% Returns a Set of unique trigrams
 split_file_in_trigrams(Fname)->
     case file:open(Fname,[read,{encoding,utf8}, {read_ahead,5000}]) of
@@ -82,10 +93,37 @@ redis_pusher(Trigram, Accumulator)->
     AccOut={data, Redis, FileId, Counter+1 },
     AccOut.
 
+iolist_equal(A, B) ->
+    iolist_to_binary(A) =:= iolist_to_binary(B).
+
 %% @doc Master Entry Point:
 %% Load a file, split in trigrams and push on Redis
-%% Problem: it opens too much connections to redis
-%% so it shoud be possible to 'pool' them somewhat
+%% If the file md5 is already here, we skip it (optimization)
+load_file_if_needed(Fname)->
+    C=er_zauker_rpool:wait4Connection(),
+    {ok, Stuff}=eredis:q(C,["GET",string:concat("cz:md5:",Fname)]),
+    case Stuff of
+	undefined ->
+	    %io:format("Brand new file~n"),
+	    load_file(Fname,C),
+	    CurrentChecksum=md5_file(Fname);	    
+	Checksum2Verify -> 
+	    CurrentChecksum=md5_file(Fname),	    
+	    %io:format("Ok proceed checking md5_file ~p with ~p ~n",[Checksum2Verify,CurrentChecksum]),
+	    case iolist_equal(CurrentChecksum, Checksum2Verify) of
+		true ->
+		    %% io:format("File unchanged,Skipped:~p~n",[Fname]),
+		    nothing2say;
+	       false ->
+		    load_file(Fname,C)
+	    end
+    end,
+    %% Register new Md5 after we processed it
+    eredis:q(C,["SET",string:concat("cz:md5:",Fname),CurrentChecksum]),
+    %% Release connection
+    er_zauker_rpool:releaseConnection(C).    
+	    
+
 load_file(Fname)->
     %%{ok, C} = eredis:start_link(),
     C=er_zauker_rpool:wait4Connection(),
@@ -99,7 +137,7 @@ load_file(Fname,C)->
     		     %%io:format("New FileId:~p For File: ~p~n",[FileId,Fname]),
 		     eredis:q(C,["SET", string:concat("fscan:id:",Fname),FileId]),
 		     eredis:q(C,["SET", string:concat("fscan:id2filename:",FileId),Fname]);
-	_ -> %%io:format("Already Found FileId:~p For File: ~p~n",[FileId,Fname]),
+	_ -> %%io:format("Already Found FileId:~p For File: ~p~n",[FileId,Fname]),	    
 	     FileId=binary_to_list(Stuff)	     
     end,
     %%io:format("Splitting files...~n"),
