@@ -2,7 +2,7 @@
 -author("giovanni.giorgi@gioorgi.com").
 
 
--export([startRedisPool/0,wait4Connection/0,releaseConnection/1]).
+-export([startRedisPool/0,wait4Connection/0,releaseConnection/1,delegate_connection2redis/1]).
 
 %%% Too many redis connection are bad bacause lead to
 %% =ERROR REPORT==== 15-Jul-2014::11:38:05 ===
@@ -10,17 +10,24 @@
 %% So to avoid it we create a simple 'semaphore' to ask if we can proceed or not: this is the responsability
 %% of er_zauker_rpool module
 
+-define(TIMEOUT, 5000).
 
+%% @doc Define here max connections. 
+%% To track it from the redis side use  the follwing  shell command
+%% watch -d 'redis-cli client list | wc -l'
+%% it will spot errors!
+%% Erlang will magically optimize the load around this value.
+%% Redis default maximum is 10.000 
+%% Commodify file system limit is near 32.000 files per directory
+%% 
+-define(MAX_CONNECTIONS,500).
 
 startRedisPool()->
     register(rpool,spawn(fun rpoolman/0)).
 
-%%% @doc Define here max connections. Erlang will magically optimize the load around this value.
-%%% To track it from the redis side use  the follwing  shell command
-%%% watch -d 'redis-cli client list | wc -l'
-%%% it will spot errors!
+
 rpoolman()->
-    rpool(9000).
+    rpool(?MAX_CONNECTIONS).
 
 
 
@@ -29,7 +36,8 @@ wait4Connection()->
     rpool!{self(),ask},
     receive
 	{ok}->
-	    {ok, C} = eredis:start_link(),
+	    % Returns {error,no_redis} if redis is down. Consider retry connect
+	    {ok_proxed, C} = safe_redis_connect(),
 	    C
        %% after 60000 ->
        %% 	       io:format("~n~p Mmmm still waiting Redis connection After 1 minute~n", [self()]),
@@ -43,12 +51,45 @@ releaseConnection(C)->
 %%%% INTERNALS FOLLOW
 
 
+%%% If redis connection is unailable, The process running delegate will crash
+%%% So delegate is a simple "proxy"
+delegate_connection2redis(Caller)->
+	try	   	     
+	    ERedisResponse=eredis:start_link(),
+	    Caller ! ERedisResponse
+	catch
+	   _ ->
+	      erlang:display(erlang:get_stacktrace()),
+		Caller ! {error,unexpected}
+	end.
+
+%% @doc In case of error returns {error, ReasonAtom } 
+safe_redis_connect()->
+    Pidz=spawn(er_zauker_rpool,delegate_connection2redis,[self()]),
+    receive 
+	{ok,C} ->
+	    {ok_proxed,C};
+	_ -> {error,no_redis}
+    after 5000 ->
+	    case process_info(Pidz) of
+		undefined ->
+		    {error,no_redis};
+		_ -> {error,redis_delegate_timeout}
+	    end
+    end.
+
+
+
+
+
+
+
 
 
 rpool(RemainingConnections)->
-    if RemainingConnections <3 -> io:format("RedisFree Connections: ~p~n",[RemainingConnections]);
-       true -> nothing2say
-    end,
+    %% if RemainingConnections <3 -> io:format("RedisFree Connections: ~p~n",[RemainingConnections]);
+    %%    true -> nothing2say
+    %% end,
     receive 
 	{Pid, ask} ->
 	    if RemainingConnections >0 ->
@@ -68,11 +109,13 @@ rpool(RemainingConnections)->
 	
     
 rpoolReleaseOnlyMode(FirstWaitingPid)->
-    io:format("ReleaseOnlyMode~n"),
+    %% decomment the following line to monitor when the pool fills up:
+    %% io:format("All ~p connections filled up~n",[?MAX_CONNECTIONS]),
     receive
 	{_Pid, release, Connection2Release}->
 	    eredis:stop(Connection2Release),
 	    FirstWaitingPid!{ok},
-	    %% Now we have just consumed the resource so we have zero resources...
+	    %% FIXME: Now we have just consumed the resource so we have zero resources
+	    %% Anyway we changed again mode 
 	    rpool(0)
     end.    

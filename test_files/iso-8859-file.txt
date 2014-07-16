@@ -1,0 +1,2 @@
+Example of iso-8859 text file. Enjoy
+vincolo di univocità non rispettato

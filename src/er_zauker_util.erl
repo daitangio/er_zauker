@@ -9,7 +9,13 @@
 	]).
 
 %%% Space guy is the tree-spaced guy
+%%% Which is NEVER NEVER INDEXED
 -define(SPACE_GUY,"   ").
+
+good_trigram(Element)->    
+    Element /= ?SPACE_GUY.
+
+
 
 %% @doc Split a string in 3-pair trigrams. Case Sensitive
 trigram(ToSplit)->
@@ -64,9 +70,6 @@ split_file_in_trigrams(Fname)->
     end.
 
 
-good_trigram(Element)->    
-    Element /= "   ".
-
 
 
 scan_file_trigrams(Fd,TrigramSet, {ok, StringToSplit})->
@@ -81,7 +84,7 @@ scan_file_trigrams(Fd,TrigramSet, eof)->
     {ok,FilteredSet};
 
 scan_file_trigrams(Fd, _TrigramSet, {error,Reason}) ->
-    file:close(Fd),
+    file:close(Fd),    
     {error,Reason}.   
 
 
@@ -115,6 +118,7 @@ load_file_if_needed(Fname)->
 		    %% io:format("File unchanged,Skipped:~p~n",[Fname]),
 		    nothing2say;
 	       false ->
+		    %% TODO: we should the if from all the trigrams it belongs!
 		    load_file(Fname,C)
 	    end
     end,
@@ -124,33 +128,40 @@ load_file_if_needed(Fname)->
     er_zauker_rpool:releaseConnection(C).    
 	    
 
-load_file(Fname)->
-    %%{ok, C} = eredis:start_link(),
+load_file(Fname)->    
     C=er_zauker_rpool:wait4Connection(),
-    load_file(Fname,C),
-    er_zauker_rpool:releaseConnection(C).
+    ReturnedValue=load_file(Fname,C),
+    er_zauker_rpool:releaseConnection(C),
+    ReturnedValue.
 
 load_file(Fname,C)->
     {ok, Stuff}=eredis:q(C,["GET",string:concat("fscan:id:",Fname)]),
     case Stuff of
 	undefined -> FileId=er_zauker_util:get_unique_id(C),
-    		     %%io:format("New FileId:~p For File: ~p~n",[FileId,Fname]),
+    		     io:format("New FileId:~p For File: ~p~n",[FileId,Fname]),
 		     eredis:q(C,["SET", string:concat("fscan:id:",Fname),FileId]),
 		     eredis:q(C,["SET", string:concat("fscan:id2filename:",FileId),Fname]);
-	_ -> %%io:format("Already Found FileId:~p For File: ~p~n",[FileId,Fname]),	    
+	_ -> io:format("Changed or not successfuly processed: ~p~n",[Fname]),	    
 	     FileId=binary_to_list(Stuff)	     
     end,
     %%io:format("Splitting files...~n"),
-    {ok, TrigramSet}=split_file_in_trigrams(Fname),
-    %% io:format("Pushing data...~n"),
-    %% %% Now wrap the redis_pusher function inside a multi/exec transaction
-    {ok, <<"OK">>} = eredis:q(C, ["MULTI"]),    
-    {data, _Redis, _FileId, MyCounter }=sets:fold(fun redis_pusher/2,{data, C, FileId,0 },TrigramSet),
-    %% %%{ok, [<<"OK">>, <<"OK">>]} = eredis:q(C, ["EXEC"]),
-    eredis:q(C, ["EXEC"]),
-    %% Signal file pushed
-    io:format("~p pushed: ~p~n", [Fname, MyCounter]),
-    {ok}.
+    case split_file_in_trigrams(Fname) of
+	{error,Reason} ->
+	    io:format("Unable to parse ~p ~p ~n",[Fname,Reason]),
+	    %% TODO: mark file somewhat
+	    {error,Reason};
+	{ok, TrigramSet}->
+	    %% io:format("Pushing data...~n"),
+	    %% %% Now wrap the redis_pusher function inside a multi/exec transaction
+	    {ok, <<"OK">>} = eredis:q(C, ["MULTI"]),    
+	    {data, _Redis, _FileId, MyCounter }=sets:fold(fun redis_pusher/2,{data, C, FileId,0 },TrigramSet),
+	    %% %%{ok, [<<"OK">>, <<"OK">>]} = eredis:q(C, ["EXEC"]),
+	    eredis:q(C, ["EXEC"]),
+	    %% Signal file pushed
+	    io:format("~p pushed: ~p~n", [Fname, MyCounter]),
+	    {ok}
+    end.
+
 
 %% See http://sacharya.com/md5-in-erlang/
 %% http://www.enchantedage.com/hex-format-hash-for-md5-sha1-sha256-and-sha512

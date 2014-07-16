@@ -1,8 +1,11 @@
 -module(basic_zauker_tests).
--compile(export_all).
+
+%%-compile([export_all,{parse_transform, lager_transform}]).
+-compile([export_all]).
 
 -ifdef(TEST).
 -include_lib("eunit/include/eunit.hrl").
+
 
 %% This module show how to use new ERlang17 Maps
 %% It is also a learning center for Erlang newbies
@@ -40,33 +43,52 @@ name_in_fun_test() ->
 
 
 %%%% checking for  a connection problem is quite hard
+%%%% @doc This function must try to connect to non-existent REDIS 
 connection2redis_will_tear_down_me(Caller)->
 	try	   
-	   eredis:start_link(),
-	   Caller ! {ok}
+	    %% The port 6999 is the wrong one: 
+	    ERedisResponse=eredis:start_link("127.0.0.1", 6999, 0, "",no_reconnect),	   
+	    Caller ! ERedisResponse
 	catch
-	   _:_ ->
+	   _ ->
 	      erlang:display(erlang:get_stacktrace()),
-		  Caller ! {error}
+		Caller ! {error,unexpected}
 	end.
 
+
+safe_redis_connect()->
+    Pidz=spawn(basic_zauker_tests,connection2redis_will_tear_down_me,[self()]),
+    receive 
+	{ok,C} ->
+	    C;
+	_ -> {error,no_redis}
+    after 500 ->
+	    case process_info(Pidz) of
+		undefined ->
+		    {error,no_redis};
+		_ -> {error,redis_timeout}
+	    end
+    end.
+    
+			 
+
+
+%% Still unsolved problem
+%% connectionIsDown_test()->
+%%     connection2redis_will_tear_down_me(self()),
+%%     receive
+%% 	{error}->
+%% 	    ?assertEqual(true,true);	 
+%% 	_ ->
+%% 	    ?debugMsg("Connecting to non-existent redis give not error back"),
+%% 	    ?assertEqual(true,false)
+%%     end.
 
 
 %% Wrong: should report undefined if Pidz is dead but it des not happen
 connection2redis_test()->
-	Pidz=spawn(basic_zauker_tests,connection2redis_will_tear_down_me,[self()]),
-	receive 
-		{ok} ->
-			?debugMsg("Redis ok");
-		{error} ->
-			?debugMsg("Redis offline")
-		%% As far as we can see, 350 is a good value to test this
-		after 350 ->
-			?debugMsg("Redis offline or slow"),
-			?debugVal(process_info(Pidz)),
-			% For extra safety: we expect the test process CRASHED:
-			?assertNotEqual(undefined, process_info(Pidz))			
-	end.
+    {error,R}=safe_redis_connect(),
+    ?assertEqual(no_redis,R).
 
 
 %% Breaks and we are not able to cope
@@ -143,6 +165,9 @@ map_ids_to_files_test()->
 
 setup()->
     er_zauker_rpool:startRedisPool(),
+    %% Run Lager logger
+    %%lager:start(),
+    %%lager:info("Nice to meet you"),
     done.
 
 cleanup(_Bho)->
@@ -150,7 +175,7 @@ cleanup(_Bho)->
     nothing2do.
 
 
-generator_test_() ->
+seach_test_() ->
     {setup, fun setup/0, fun cleanup/1,
      {inorder,
       [
@@ -186,14 +211,16 @@ subgram_does_not_work()->
     SearchFilesResult=er_zauker_app:erlist("su"),
     ?assertEqual([],SearchFilesResult).
 
-
-
-
 search_works_no_matchtest()->
     er_zauker_util:load_file("../test_files/test_text1.txt"),
     SearchFilesResult=er_zauker_app:erlist("we hope this string will not be on any file"),
     ?assertEqual([],SearchFilesResult).
-    
+
+
+
+iso_8859_breaks_test()->
+    ?assertMatch( {error,_},er_zauker_util:load_file("../test_files/iso-8859-file.txt")).
+ 
 %%    
     
 
