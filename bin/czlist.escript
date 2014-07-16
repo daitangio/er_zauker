@@ -6,7 +6,8 @@ main([SearchString]) ->
     %io:write(SearchString),
     Candidates=er_zauker_app:erlist(SearchString),
     lists:foreach( fun(E) ->
-            io:fwrite(E),
+	    %% we double ~ on file name to avoid error from fwrite
+            io:fwrite( re:replace(E,"~","~~",[{return,list}])),
 	    io:fwrite("\n")
         end,Candidates).
 
