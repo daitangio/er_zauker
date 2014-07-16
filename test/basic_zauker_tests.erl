@@ -134,6 +134,62 @@ map_ids_to_files_test()->
     %% TODO CHECK LEN IS 2
     ?debugVal(Files).
 
+
+%% Indexing Integration tests for checking:
+%% Is indexer working properly?
+%% To do it well, we have a setup and cleaup function:
+%% see http://stackoverflow.com/questions/16223210/erlang-eunit-setup-function-doesnt-run
+
+
+setup()->
+    er_zauker_rpool:startRedisPool(),
+    done.
+
+cleanup(_Bho)->
+    ?debugMsg("Cleanup of redis pool still unsupported"),
+    nothing2do.
+
+
+generator_test_() ->
+    {setup, fun setup/0, fun cleanup/1,
+     {inorder,
+      [
+       fun search_works1/0,
+       fun search_works2/0,
+       fun subgram_does_not_work/0,
+       fun search_works_no_matchtest/0
+      ]
+     }
+    }.
+
+
+
+search_works1()->    
+    er_zauker_util:load_file("../test_files/test_text1.txt"),
+    SearchFilesResult=er_zauker_app:erlist("califragilisti"),
+    ?assertEqual([<<"../test_files/test_text1.txt">>],SearchFilesResult).
+
+search_works2()->    
+    er_zauker_util:load_file("../test_files/test_text1.txt"),
+    SearchFilesResult=er_zauker_app:erlist("spirali"),
+    ?assertEqual([<<"../test_files/test_text1.txt">>],SearchFilesResult).
+
+subgram_does_not_work()->
+    er_zauker_util:load_file("../test_files/test_text1.txt"),
+    SearchFilesResult=er_zauker_app:erlist("su"),
+    ?assertEqual([],SearchFilesResult).
+
+
+
+
+search_works_no_matchtest()->
+    er_zauker_util:load_file("../test_files/test_text1.txt"),
+    SearchFilesResult=er_zauker_app:erlist("we hope this string will not be on any file"),
+    ?assertEqual([],SearchFilesResult).
+    
+%%    
+    
+
 %% makeIntegrationSearch_test()->
 %%     R=eredis:start_link(),
 %%     T=er_zauker_app:makeSearchTrigram("herhec"),
