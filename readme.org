@@ -45,7 +45,7 @@ v0.0.3 spot
 1. a fast md5 checksum to avoid reindexing already indexed data.
 2. The ability to exit when all files are indexed (see =er_zauker_app:wait_worker_done()=)
 3. the ability to ask the server how much worker are active, statistics and so on
-4. Uupon common process crash, the redis resource will be freed
+4. Upon common process crash, the redis resource will be freed
 5. Easy performance meters (see =er_zauker_app:wait_worker_done()= output).
 
 * Known limitations
