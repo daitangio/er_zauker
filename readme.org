@@ -42,13 +42,15 @@ On a very huge set of files czgrep will easily outperform 'grep -r',
 
 * New features!
 v0.0.3 spot 
-1) a fast md5 checksum to avoid reindexing already indexed data.
-2) he ability to ask the server how much worker are active. For instance the function =er_zauker_app:wait_worker_done()= shows you how to query the server and wait until all worker are done.
-
-Now, upon common process crash, the redis resource will be freed.
+1. a fast md5 checksum to avoid reindexing already indexed data.
+2. The ability to exit when all files are indexed (see =er_zauker_app:wait_worker_done()=)
+3. the ability to ask the server how much worker are active, statistics and so on
+4. Uupon common process crash, the redis resource will be freed
+5. Easy performance meters (see =er_zauker_app:wait_worker_done()= output).
 
 * Known limitations
-It is not yet possible to index iso-8859 files.
+It is not yet possible to index iso-8859 files (it will crash the file reader part). 
+It is not good to mix encoding inside redis, so the general idea is to get somewhat utf-8 conversion.
 
 * How to develop: suggested installation
 ** How to monitor redis
