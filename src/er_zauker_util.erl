@@ -141,10 +141,10 @@ load_file(Fname,C)->
     {ok, Stuff}=eredis:q(C,["GET",string:concat("fscan:id:",Fname)]),
     case Stuff of
 	undefined -> FileId=get_unique_id(C),
-    		     io:format("New FileId:~p For File: ~p~n",[FileId,Fname]),
+    		     %%io:format("New FileId:~p For File: ~p~n",[FileId,Fname]),
 		     eredis:q(C,["SET", string:concat("fscan:id:",Fname),FileId]),
 		     eredis:q(C,["SET", string:concat("fscan:id2filename:",FileId),Fname]);
-	_ -> io:format("Changed or not successfuly processed: ~p~n",[Fname]),	    
+	_ -> %%io:format("Changed or not successfuly processed: ~p~n",[Fname]),	    
 	     FileId=binary_to_list(Stuff)	     
     end,
     %%io:format("Splitting files...~n"),

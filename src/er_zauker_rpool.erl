@@ -19,8 +19,8 @@
 %% Erlang will magically optimize the load around this value.
 %% Redis default maximum is 10.000 
 %% Commodify file system limit is near 32.000 files per directory
-%% 
--define(MAX_CONNECTIONS,500).
+%% Because there is a lot of I/O from file system, 
+-define(MAX_CONNECTIONS,3500).
 
 startRedisPool()->
     register(rpool,spawn(fun rpoolman/0)).

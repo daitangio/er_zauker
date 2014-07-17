@@ -30,3 +30,4 @@ doc
 waf_build
 waf-*
 /ebin/
+.rebar

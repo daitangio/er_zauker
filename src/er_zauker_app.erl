@@ -4,7 +4,10 @@
 -behaviour(application).
 
 %% Application callbacks
--export([start/2, stop/1, startIndexer/0, indexerDaemon/0,indexDirectory/1,makeSearchTrigram/1,listFileIds/2,map_ids_to_files/2,erlist/1]).
+-export([start/2, stop/1, startIndexer/0, 
+	 indexerDaemon/1,indexDirectory/1,makeSearchTrigram/1,listFileIds/2,map_ids_to_files/2,
+	 erlist/1,
+	 wait_worker_done/0]).
 
 %% ===================================================================
 %% Application callbacks
@@ -19,24 +22,61 @@ stop(_State) ->
 
 startIndexer()->
     er_zauker_rpool:startRedisPool(),
-    register(er_zauker_indexer,spawn(fun indexerDaemon/0)).
+    register(er_zauker_indexer,spawn(er_zauker_app, indexerDaemon, [ 0 ] )).
 
 
 
+%%% SUPPORT API:
+%% @doc wait_worker_done()
+%% will return control only when all workers have done.
+%% 
+wait_worker_done()->
+    waitAllWorkerDone(-1,erlang:now()).
 
+waitAllWorkerDone(RunningWorker,StartTimestamp)->
+    er_zauker_indexer!{self(),running},
+    receive 
+	{worker,0} ->
+	    io:format("All workers done~n~n");
+	{worker, RunningGuys} ->
+	    if 
+		RunningGuys  /= RunningWorker -> 
+		    % Print and compute the microseconds (10^-6) time difference
+		    MsRunning=timer:now_diff(erlang:now(),StartTimestamp),
+		    MillisecondRunning=MsRunning/1000,
+		    io:format("[~p]ms Working:~p~n",[MillisecondRunning,RunningGuys]);
+	       true -> 
+		    %% Okey so nothing changed so far...sleep a bit to readuce load
+		    timer:sleep(100)
+	    end,
+	    %% Sleep a bit MORE
+	    timer:sleep(600),
+	    waitAllWorkerDone(RunningGuys,StartTimestamp)
+    after 5000 ->
+	    io:format("~n-----------------------------~n"),
+	    io:format(" Mmmm no info in the last 5 sec... when was running:~p~n",[RunningWorker]),
+	    io:format("------------------------------~n"),
+	    waitAllWorkerDone(RunningWorker,StartTimestamp)
+    end.
 
-indexerDaemon()->
+indexerDaemon(RunningWorker)->
     receive
-	{Pid,file,FileToIndex}->
+	{_Pid,file,FileToIndex}->
 	    % Spawn a worker for this guy...
 	    NewPid=spawn(er_zauker_util, load_file_if_needed,[FileToIndex]),
-	    Pid!{worker, NewPid},
-	    indexerDaemon();	
-	{Pid,directory, DirectoryPath} ->
-	    %%io:format("Recursive Indexing...~p~n",[DirectoryPath]),
-	    Files2Index=indexDirectory(DirectoryPath),
-	    Pid!{scan_started,Files2Index},
-	    indexerDaemon();
+	    erlang:monitor(process,NewPid),
+	    indexerDaemon(RunningWorker+1);	
+	{_Pid,directory, DirectoryPath} ->
+	    NewPid=spawn(er_zauker_app,indexDirectory,[DirectoryPath]),
+	    erlang:monitor(process,NewPid),
+	    indexerDaemon(RunningWorker+1);
+	{'DOWN', _Reference, process, _Pid, _Reason} ->
+	    %%io:format("Just down: ~p~n", [{'DOWN', Reference, process, Pid, Reason}]),
+	    indexerDaemon(RunningWorker-1);
+	{CallerPid,running} ->
+	    %%io:format("Asked Running Worker:~p~n",[RunningWorker]),
+	    CallerPid!{worker,RunningWorker},
+	    indexerDaemon(RunningWorker);		
 	{Pid,stop} ->
 	    Pid!{stoped,self()}
     end.
