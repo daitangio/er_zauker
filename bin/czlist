@@ -1,0 +1,6 @@
+#!/bin/bash
+escriptSupport="$(dirname $0)/czlist.escript"
+#Extract possible candidates from erlang and then grep them super fast:
+#set -e -x 
+escript   $escriptSupport $@ 
+
