@@ -42,16 +42,20 @@ On a very huge set of files czgrep will easily outperform 'grep -r',
 
 * New features!
 v0.0.3 spot a fast md5 checksum to avoid reindexing already indexed data.
-v0.0.3 also offer the ability to ask the server how much worker are active. 
+v0.0.3 also offer the ability to ask the server how much worker are active: =er_zauker_app:wait_worker_done()= shows you how to query the server and wait until all worker are done.
 
-er_zauker_app:wait_worker_done() show how to query the server and wait until all worker are done.
-
-v0.0.3 also fixed a bug which can enequeue directory indexing request.
-Also upon common process crash, the redis resource will be freed.
+Now, upon common process crash, the redis resource will be freed.
 
 * Performance
 Using hipe, 64 bit and compiling only er_zauker_util as native (default configuration)
-we can reach 2000  parallel connections to redis
+we can reach 300  parallel connections to redis and 2-3 files per second.
+On already indexed files (When we are just checking md5) we can reach 2000 connections to redis and 15 files per second.
+
+| Files processed |          Files/Sec | Scope               |
+|             772 | 3.1965462725330633 | All new             |
+|             772 | 175.57521351037624 | All already indexed |
+|             692 |                5.2 | Mixed               |
+
 
 
 * Known limitations
