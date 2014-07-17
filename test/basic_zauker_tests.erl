@@ -213,9 +213,11 @@ subgram_does_not_work()->
     SearchFilesResult=er_zauker_app:erlist("su"),
     ?assertEqual([],SearchFilesResult).
 
+%% @doc this test is a negative one: a little useful
+%% we use it only to avoid some bad cases in which we return wrong results!
 search_works_no_matchtest()->
     er_zauker_util:load_file("../test_files/test_text1.txt"),
-    SearchFilesResult=er_zauker_app:erlist("we hope this string will not be on any file"),
+    SearchFilesResult=er_zauker_app:erlist("yeppa,we hope this set of trigrams will not be on any file set used for test."),
     ?assertEqual([],SearchFilesResult).
 
 
