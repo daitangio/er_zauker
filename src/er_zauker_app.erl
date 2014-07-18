@@ -1,6 +1,7 @@
 -module(er_zauker_app).
 -author("giovanni.giorgi@gioorgi.com").
 
+
 -behaviour(application).
 
 %% Application callbacks
@@ -9,6 +10,14 @@
 	 erlist/1,
 	 wait_worker_done/0]).
 
+%% Supported languages by CodeZauker are filtered via the following regexp
+%% Emacs lisp is very bad because generate a lot of trigrams
+%% xml is supported only because it is used a lot on some java projects
+%% but personally I hate it.
+%% .cs=C# source file
+-define(SCAN_REGEXP,".*[.](java|xml|c|cpp|erl|sql|cs|txt|markdown|properties|ini|el|rb|php)$").
+
+
 %% ===================================================================
 %% Application callbacks
 %% ===================================================================
@@ -16,7 +25,7 @@
 start(_StartType, _StartArgs) ->
     er_zauker_sup:start_link().
 
-stop(_State) ->
+stop(_State) ->    
     ok.
 
 
@@ -92,14 +101,18 @@ indexerDaemon(RunningWorker, FilesProcessed)->
 	{Pid, report} ->
 	    Pid!{worker,RunningWorker,files_processed,FilesProcessed},
 	    indexerDaemon(RunningWorker,FilesProcessed);
+	code_switch ->
+	    io:format("Reloading code...."),
+	    er_zauker_app:indexerDaemon(RunningWorker,FilesProcessed);
 	{Pid,stop} ->
 	    Pid!{stoped,self()}
     end.
 	 
 
+
 %% @doc returns the number of file to index.
 indexDirectory(Directory)->    
-    Files2Scan=filelib:fold_files(Directory, ".*", true, fun priv_index_file/2, 0),
+    Files2Scan=filelib:fold_files(Directory,?SCAN_REGEXP , true, fun priv_index_file/2, 0),
     io:format("Scanned Dir:~p Files found:~p ~n",[Directory,Files2Scan]),
     Files2Scan.
 
