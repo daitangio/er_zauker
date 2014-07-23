@@ -5,7 +5,7 @@ all: deps compile
 deps:
 	@$(REBAR) get-deps
 compile:
-	@$(REBAR) --jobs 4 compile
+	@$(REBAR) --jobs 8 compile
 eunit:
 	@$(REBAR) --jobs 12 --verbose skip_deps=true eunit	
 clean:
@@ -13,10 +13,10 @@ clean:
 	rm -rf .eunit/*
 
 cli:	compile
-	erl  -name Cli -setCookie ErZaukerCli  -pa lib/eredis/ebin/ -pa ebin/ -eval 'observer:start(),er_zauker_app:startIndexer().'
+	erl -name Cli -setCookie ErZaukerCli  -pa lib/eredis/ebin/ -pa ebin/ -eval 'observer:start(),er_zauker_app:startIndexer().'
 
 test-indexer: compile
-	erl  -name Cli -setCookie ErZaukerCli  -pa lib/eredis/ebin/ -pa ebin/ -eval 'er_zauker_app:startIndexer(),er_zauker_indexer!{self(),directory,"src/"},er_zauker_app:waitAllWorkerDone(0).'
+	erl  -name Cli -setCookie ErZaukerCli  -pa lib/eredis/ebin/ -pa ebin/ -eval 'er_zauker_app:startIndexer(),er_zauker_indexer!{self(),directory,"src/"},er_zauker_app:wait_worker_done(),init:stop().'
 
 test-big-project: compile
 	erl  -name Cli -setCookie ErZaukerCli  -pa lib/eredis/ebin/ -pa ebin/ -eval 'er_zauker_app:startIndexer(),er_zauker_indexer!{self(),directory,"$(ER_TEST_PROJECT)"}.'
