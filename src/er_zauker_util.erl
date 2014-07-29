@@ -2,7 +2,11 @@
 -author("giovanni.giorgi@gioorgi.com").
 
 %% hipe optimization: please compile this module in x64
--compile([native]).
+-compile([native, 
+	  {hipe,[
+		 o3, %% OPTIMIZE A lot
+		 {verbose,true}
+		]}]).
 
 -export([load_file_if_needed/1,
 	 load_file/1,
@@ -52,6 +56,11 @@ split_on_set(ToSplit) ->
 get_unique_id(C)->
     {ok, ID}=eredis:q(C, ["INCR", "fscan:nextId"]),
     binary_to_list(ID).
+
+increment_processed_files_counter(C)->
+    {ok,ID}=eredis:q(C, ["INCR", "fscan:fileProcessed"]),
+    binary_to_list(ID).
+
 
 %% split_file_in_trigrams(Fname)->
 %%     try split_file_in_trigrams_priv(Fname) of
@@ -127,6 +136,8 @@ load_file_if_needed(Fname)->
     end,
     %% Register new Md5 after we processed it
     eredis:q(C,["SET",string:concat("cz:md5:",Fname),CurrentChecksum]),
+    %% Signal file pushed
+    increment_processed_files_counter(C),
     %% Release connection
     er_zauker_rpool:releaseConnection(C).    
 	    
@@ -154,14 +165,12 @@ load_file(Fname,C)->
 	    %% TODO: mark file somewhat
 	    {error,Reason};
 	{ok, TrigramSet}->
-	    %% io:format("Pushing data...~n"),
-	    %% %% Now wrap the redis_pusher function inside a multi/exec transaction
+	    %% io:format("Pushing data...~n"),	
+	    %% Now wrap the redis_pusher function inside a multi/exec transaction
 	    {ok, <<"OK">>} = eredis:q(C, ["MULTI"]),    
 	    {data, _Redis, _FileId, MyCounter }=sets:fold(fun redis_pusher/2,{data, C, FileId,0 },TrigramSet),
-	    %% %%{ok, [<<"OK">>, <<"OK">>]} = eredis:q(C, ["EXEC"]),
 	    eredis:q(C, ["EXEC"]),
-	    %% Signal file pushed
-	    io:format("~p pushed: ~p~n", [Fname, MyCounter]),
+	    %% io:format("~p pushed: ~p~n", [Fname, MyCounter]),
 	    {ok}
     end.
 

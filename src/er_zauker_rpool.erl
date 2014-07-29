@@ -12,15 +12,18 @@
 
 -define(TIMEOUT, 5000).
 
-%% @doc Define here max connections. 
+%% @doc Define here max connections (redis default maximum is 10.000).
 %% To track it from the redis side use  the follwing  shell command
 %% watch -d 'redis-cli client list | wc -l'
-%% it will spot errors!
+%% 
 %% Erlang will magically optimize the load around this value.
-%% Redis default maximum is 10.000 
-%% Commodify file system limit is near 32.000 files per directory
-%% Because there is a lot of I/O from file system, 
+%% Note: Redis must have enough ram to concurrently save the index
+%% or you will start getting errors
 -define(MAX_CONNECTIONS,3500).
+
+%% Put this value 0 to stick with MAX_CONNECTIONS
+%% or let erlang grow freely. 
+-define(GROW_FACTOR,0).
 
 startRedisPool()->
     register(rpool,spawn(fun rpoolman/0)).
@@ -115,7 +118,7 @@ rpoolReleaseOnlyMode(FirstWaitingPid)->
 	{_Pid, release, Connection2Release}->
 	    eredis:stop(Connection2Release),
 	    FirstWaitingPid!{ok},
-	    %% FIXME: Now we have just consumed the resource so we have zero resources
-	    %% Anyway we changed again mode 
-	    rpool(0)
+	    %% Now we have just consumed the resource so we have zero resources
+	    %% We can decide to grow a bit or to simply stay with 0 connectins
+	    rpool(?GROW_FACTOR)
     end.    
