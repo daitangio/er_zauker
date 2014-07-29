@@ -20,7 +20,7 @@
 %% Erlang will magically optimize the load around this value.
 %% Note: Redis must have enough ram to concurrently save the index
 %% or you will start getting errors
--define(MAX_CONNECTIONS,3500).
+-define(MAX_CONNECTIONS,1000).
 
 start_link()->
     R=gen_server:start_link({local, er_zauker_rpool}, er_zauker_rpool, [], []),
