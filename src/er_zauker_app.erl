@@ -30,8 +30,9 @@ stop(_State) ->
 
 
 startIndexer()->
-    er_zauker_rpool:startRedisPool(),
-    register(er_zauker_indexer,spawn(er_zauker_app, indexerDaemon, [ 0,0 ] )).
+    er_zauker_rpool:start_link(),
+    register(er_zauker_indexer,spawn(er_zauker_app, indexerDaemon, [ 0,0 ] )),   
+    ok.
 
 
 
