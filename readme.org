@@ -41,6 +41,10 @@ On a very huge set of files czgrep will easily outperform 'grep -r',
 
 
 * New features!
+v0.0.4 spot
+ redis pool (rpool) have been reimplemented as a gen_server. The implementation now is much more fast.
+
+
 v0.0.3 spot 
 1. a fast md5 checksum to avoid reindexing already indexed data.
 2. The ability to exit when all files are indexed (see =er_zauker_app:wait_worker_done()=)
