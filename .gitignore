@@ -2,7 +2,7 @@
 
 log/*
 erts-*/*
-lib/*
+deps/*
 erl_crash.dump
 *~
 ebin/*

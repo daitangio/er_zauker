@@ -1,6 +1,8 @@
 -module(er_zauker_util).
 -author("giovanni.giorgi@gioorgi.com").
 
+%% GG Consider also 'episcina' as resource pool
+
 %% hipe optimization: please compile this module in x64
 -compile([native, 
 	  {hipe,[
@@ -159,6 +161,8 @@ load_file(Fname,C)->
 	     FileId=binary_to_list(Stuff)	     
     end,
     %%io:format("Splitting files...~n"),
+    %%?optimization tip: release redis now, and take it back after
+    %% but you must remove C from /every/ reference
     case split_file_in_trigrams(Fname) of
 	{error,Reason} ->
 	    io:format("Unable to parse ~p ~p ~n",[Fname,Reason]),
@@ -168,7 +172,7 @@ load_file(Fname,C)->
 	    %% io:format("Pushing data...~n"),	
 	    %% Now wrap the redis_pusher function inside a multi/exec transaction
 	    {ok, <<"OK">>} = eredis:q(C, ["MULTI"]),    
-	    {data, _Redis, _FileId, MyCounter }=sets:fold(fun redis_pusher/2,{data, C, FileId,0 },TrigramSet),
+	    {data, _Redis, _FileId, _MyCounter }=sets:fold(fun redis_pusher/2,{data, C, FileId,0 },TrigramSet),
 	    eredis:q(C, ["EXEC"]),
 	    %% io:format("~p pushed: ~p~n", [Fname, MyCounter]),
 	    {ok}
