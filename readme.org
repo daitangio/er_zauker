@@ -6,7 +6,7 @@ Er Zauker is an erlang-based search engine for programming languages.
 Er Zauker is based from ideas taken by old Google Code Search and uses Redis as storage engine.
 For more information please look at http://gioorgi.com/tag/code-zauker/
 
-* How to build
+* How to build and use
 Just launch
 #+BEGIN_SRC sh
   make 
@@ -38,14 +38,27 @@ By the way czgrep use =er_zauker_app:erlist= function to ask redis the file whic
 On a very huge set of files czgrep will easily outperform 'grep -r',
 
 
+* Redis configuration (IMPORTANT)
+Ensure redis.conf has
 
+#+BEGIN_SRC conf
+maxmemory-policy noeviction
+#+END_SRC
+
+(the default is volatile-lru) because otherwise you will end up losing your data :)
 
 * New features!
-v0.0.4 spot
- redis pool (rpool) have been reimplemented as a gen_server. The implementation now is much more fast.
-
-
-v0.0.3 spot 
+** v0.0.5
+ + added a test to detect bad trigrams (no 3-chars stuff).
+ + not only utf-8: iso-8859 files are supported (experimental).
+ + czgrep spots a color output
+ + to avoid issues con standrd ulimit, redis connection pool has been set below 1024.
+ + =make benchmark= now generate an eprof-report.log file to track time spent on the er_zauker_util module.
+ 
+** v0.0.4
+ + redis pool (rpool) have been reimplemented as a gen_server. The implementation now is much more fast.
+ 
+** v0.0.3 
 1. a fast md5 checksum to avoid reindexing already indexed data.
 2. The ability to exit when all files are indexed (see =er_zauker_app:wait_worker_done()=)
 3. the ability to ask the server how much worker are active, statistics and so on
