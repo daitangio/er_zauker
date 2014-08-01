@@ -31,3 +31,4 @@ waf_build
 waf-*
 /ebin/
 .rebar
+eprof-report.log
