@@ -21,10 +21,10 @@ trigram_split_test()->
 trigram_split2_test()->
     Trigrams=er_zauker_util:trigram("Greather3"),
     io:format("Trigram:~p~n",[Trigrams]),
-    ?assertEqual(["Gre","rea","eat","ath","the","her","er3"],Trigrams).
+    ?assertEqual(["gre","rea","eat","ath","the","her","er3"],Trigrams).
 
 trigram_split3__case_insensitive_test()->
-    Trigrams=er_zauker_util:itrigram("GreaTHer3"),
+    Trigrams=er_zauker_util:trigram("GreaTHer3"),
     io:format("Trigram:~p~n",[Trigrams]),
     ?assertEqual(["gre","rea","eat","ath","the","her","er3"],Trigrams).
 
@@ -64,9 +64,9 @@ md5_t1_test()->
     Checksum=erlang:md5("Er Zauker Rulez!"),
     ?assertEqual("339ba17e09c7834ab85b93009154da7c",hexstring(Checksum)  ).
 
-md5_test()->   
-    ?assertEqual("339ba17e09c7834ab85b93009154da7c",
-		 er_zauker_util:md5("Er Zauker Rulez!")).
+%% md5_test()->   
+%%     ?assertEqual("339ba17e09c7834ab85b93009154da7c",
+%% 		 er_zauker_util:md5("Er Zauker Rulez!")).
 
 %% Try to slurp a test file
 

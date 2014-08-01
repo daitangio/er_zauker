@@ -185,7 +185,9 @@ seach_test_() ->
        fun subgram_does_not_work/0,
        fun search_works_no_matchtest/0,
        fun iso_8859_breaks/0,
-       fun space_guy_never_recoded/0
+       fun space_guy_never_recoded/0,
+       fun zauker_skip_aready_indexed_test/0,
+       fun ensure_good_trigrams/0
       ]
      }
     }.
@@ -223,16 +225,39 @@ search_works_no_matchtest()->
 
 
 iso_8859_breaks()->
-    ?assertMatch( {error,_},er_zauker_util:load_file("../test_files/iso-8859-file.txt")).
+    %% ?assertMatch( {error,_},er_zauker_util:load_file("../test_files/iso-8859-file.txt")).
+    ?assertMatch( {ok},er_zauker_util:load_file("../test_files/iso-8859-file.txt")).
 
 
 space_guy_never_recoded()->
     er_zauker_util:load_file("../test_files/test_all_spaces.txt"),
     SearchFilesResult=er_zauker_app:erlist("    "),
     ?assertEqual([],SearchFilesResult).
+
+
+
+zauker_skip_aready_indexed_test()->
+    Fname = "../test_files/md5-test2.txt",
+    Checksum = "cf5c2458a05d9f0870cd9fbd3e01fa0e",
+    %%?assertEqual(Checksum,er_zauker_util:md5_file(Fname)),
+    er_zauker_util:load_file_if_needed(Fname),
+    {ok, C} = eredis:start_link(),
+    {ok, Stuff}=eredis:q(C,["GET",string:concat("cz:md5:",Fname)]),
+    ExpectedNothing2Do=er_zauker_util:load_file_if_needed(Fname),
+    ?assertMatch( {already_indexed}, ExpectedNothing2Do),    
+    ?assertEqual(Checksum,binary_to_list(Stuff)).
  
-%%    
-    
+
+
+ensure_good_trigrams()->
+    %% TODO: Delete bad trigram at the start, to avoid false positives...
+    %% GG Try to force bad trigrams like trigram:ci:\n  
+    ?assertMatch( {ok},er_zauker_util:load_file("../test_files/bad_trigram_split.txt")),
+    {ok, C} = eredis:start_link(),
+    {ok, Stuff}=eredis:q(C,["KEYS","trigram:ci:*"]),  
+    %% "trigram:ci:abc"
+    Bad = [ T || T <- Stuff, string:len(binary_to_list(T)) /= 14 ],
+    ?assertEqual([],Bad).
 
 %% makeIntegrationSearch_test()->
 %%     R=eredis:start_link(),
