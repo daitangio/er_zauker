@@ -23,15 +23,21 @@
 %% ===================================================================
 
 start(_StartType, _StartArgs) ->
+    %% YUM No good supervisor  right now.... 
     er_zauker_sup:start_link().
+    
 
-stop(_State) ->    
+stop(_State) ->   
+    er_zauker_indexer!{self(),stop},
+    %% TODO: check if stopped itself
     ok.
 
 
 startIndexer()->
-    er_zauker_rpool:start_link(),
+    er_zauker_rpool:start_link(),    
     register(er_zauker_indexer,spawn(er_zauker_app, indexerDaemon, [ 0,0 ] )),   
+    io:format("~n-------------------------------"),
+    io:format("~n-- Started Er Zauker App -----~n"),
     ok.
 
 
@@ -77,11 +83,13 @@ waitAllWorkerDone(RunningWorker,StartTimestamp) when RunningWorker >0 ->
 waitAllWorkerDone(0,_) ->
     io:format("All worker Finished").
 
+
 indexerDaemon(RunningWorker, FilesProcessed)->
     receive
 	{_Pid,file,FileToIndex}->
 	    % Spawn a worker for this guy...
 	    NewPid=spawn(er_zauker_util, load_file_if_needed,[FileToIndex]),
+	    %% ALWAYS REINDEX: NewPid=spawn(er_zauker_util, load_file,[FileToIndex]),
 	    erlang:monitor(process,NewPid),
 	    indexerDaemon(RunningWorker+1,FilesProcessed);	
 	{_Pid,directory, DirectoryPath} ->
