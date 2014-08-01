@@ -133,8 +133,8 @@ load_file_if_needed(Fname)->
 	undefined ->
 	    %% format("~p Brand new file ~p ~n",[Fname,Stuff]),
 	    Reply=load_file(Fname,C),	    
-	    eredis:q(C,["SET",MD5Key,CurrentChecksum]),
-	    io:format("New MD5 ~p = ~p ~n",[MD5Key,CurrentChecksum]);	    
+	    %%io:format("New MD5 ~p = ~p ~n",[MD5Key,CurrentChecksum]),
+	    eredis:q(C,["SET",MD5Key,CurrentChecksum]);
 	Checksum2Verify -> 	    	    
 	    case iolist_equal(CurrentChecksum, Checksum2Verify) of
 		true ->
