@@ -1,0 +1,16 @@
+To test performance, use the perf_monitor.sh to regiter data in an independent way.
+
+
+* Performance v0.0.3
+Using hipe, 64 bit and compiling only er_zauker_util as native (default configuration)
+we can reach 300  parallel connections to redis and 4 files per second.
+
+On already indexed files (When we are just checking md5) performance are a lot higher.
+
+| Files processed | Files/Sec | Scope                                     |
+|             772 |     3.197 | All new                                   |
+|            1002 |     3.940 | All new                                   |
+|            1002 |    40.420 | All already indexed                       |
+|                 |           | Mixed scenario: 1002 file already indexed |
+|                 |           |                                           |
+
