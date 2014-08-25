@@ -47,6 +47,16 @@ maxmemory-policy noeviction
 
 (the default is volatile-lru) because otherwise you will end up losing your data :)
 
+
+* About the web interface (COROS)
+Coros  (will) spots 
+1) a simple search engine
+1) a github based "download and index" functionality
+   This function will be able to download and index a provided git repository
+
+
+
+
 * New features!
 ** v0.0.6 (incubating)
  + Added nitrogen web interface (codename: COROS)
