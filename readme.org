@@ -48,6 +48,9 @@ maxmemory-policy noeviction
 (the default is volatile-lru) because otherwise you will end up losing your data :)
 
 * New features!
+** v0.0.6 (incubating)
+ + Added nitrogen web interface (codename: COROS)
+   It is not embedded, it is a standalone app depending con code-zauker
 ** v0.0.5
  + added a test to detect bad trigrams (no 3-chars stuff).
  + not only utf-8: iso-8859 files are supported (experimental).
