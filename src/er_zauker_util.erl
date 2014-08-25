@@ -28,12 +28,14 @@ good_trigram(Element)->
 
 
 
-%% @doc Split a string in 3-pair trigrams. Case Sensitive
+%% @doc Split a string in 3-pair trigrams. Case insensitive
 trigram(ToSplit)->
     Size = string:len(ToSplit),
     if
-	Size =< 3 ->
-	    [ToSplit];
+	Size < 3 ->
+	    [];
+	Size =:= 3 ->
+	    [string:to_lower(ToSplit)];
 	true  ->
 	    Trigram=string:to_lower(string:substr(ToSplit,1,3)),
 	    [  Trigram   | trigram( string:substr(ToSplit,2) ) ]		
