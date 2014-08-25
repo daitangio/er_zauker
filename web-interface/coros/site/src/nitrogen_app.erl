@@ -9,8 +9,8 @@
 start(_StartType, _StartArgs) ->
     io:format("~n-------------------------------"),
     io:format("~n-- COROS Starting Zauker ----~n"),
-    %% er_zauker_app:startIndexer(),
-    %% io:format("~n-- COROS Zauker Indexer OK ----~n"),    
+    er_zauker_app:startIndexer(),
+    io:format("~n-- COROS Zauker Indexer OK ----~n"),    
     nitrogen_sup:start_link().
 
 stop(_State) ->
