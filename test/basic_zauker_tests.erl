@@ -221,7 +221,7 @@ search_works1()->
 
 search_works2()->    
     er_zauker_util:load_file("../test_files/test_text1.txt"),
-    SearchFilesResult=er_zauker_app:erlist("spirali"),
+    SearchFilesResult=er_zauker_app:erlist("spiralidoso_se_lo_dici"),
     ?assertEqual([<<"../test_files/test_text1.txt">>],SearchFilesResult).
 
 subgram_does_not_work()->

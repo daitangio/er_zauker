@@ -21,10 +21,14 @@
 %%% Which is NEVER NEVER INDEXED
 -define(SPACE_GUY,"   ").
 
+%% After fix of trigram function Is3 test is still needed!
+%% Reason: trigram like "trigram:ci:\n"
+%% slip during processing
 good_trigram(Element)->    
     NoSpace=Element /= ?SPACE_GUY,
     Is3=string:len(Element) =:= 3,
     NoSpace and Is3.    
+
 
 
 
