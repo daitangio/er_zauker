@@ -21,19 +21,22 @@
 %%% Which is NEVER NEVER INDEXED
 -define(SPACE_GUY,"   ").
 
+
 good_trigram(Element)->    
     NoSpace=Element /= ?SPACE_GUY,
-    Is3=string:len(Element) =:= 3,
-    NoSpace and Is3.    
+    NoSpace.
+    
 
 
 
-%% @doc Split a string in 3-pair trigrams. Case Sensitive
+%% @doc Split a string in 3-pair trigrams. Case insensitive
 trigram(ToSplit)->
     Size = string:len(ToSplit),
     if
-	Size =< 3 ->
-	    [ToSplit];
+	Size < 3 ->
+	    [];
+	Size =:= 3 ->
+	    [string:to_lower(ToSplit)];
 	true  ->
 	    Trigram=string:to_lower(string:substr(ToSplit,1,3)),
 	    [  Trigram   | trigram( string:substr(ToSplit,2) ) ]		
@@ -44,10 +47,13 @@ trigram(ToSplit)->
 %% Used before commiting it to redis
 %% From v0.0.5 optimized to avoid calling trigram(): we split directyl the bad guy.
 %% The new impl passed from 6.70 uS to 3.53 uS / call approx
-%% 
+%% Return the nre set. If the string is LESS THEN 3 CHAR, NOTHING IS DONE
 split_on_set(ToSplit,Set1) ->
     Size = string:len(ToSplit),
-    if Size =< 3 ->
+    if 
+	Size < 3 ->
+	    Set1;
+	Size =:= 3 ->
 	    sets:add_element(ToSplit,Set1);
        true ->
 	    Trigram=string:to_lower(string:substr(ToSplit,1,3)),

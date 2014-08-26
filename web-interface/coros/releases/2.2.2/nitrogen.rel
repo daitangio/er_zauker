@@ -1,0 +1,17 @@
+%% rel generated at {2014,8,25} {16,36,26}
+{release,{"nitrogen","2.2.2"},
+         {erts,"6.1"},
+         [{kernel,"3.0.1"},
+          {stdlib,"2.1"},
+          {sasl,"2.4"},
+          {inets,"5.10.2"},
+          {crypto,"3.4"},
+          {runtime_tools,"1.8.14"},
+          {xmerl,"1.3.7"},
+          {compiler,"5.0.1"},
+          {asn1,"3.0.1"},
+          {public_key,"0.22"},
+          {ssl,"5.3.5"},
+          {common_test,"1.8.1"},
+          {parsetools,"2.0.11"}]}.
+

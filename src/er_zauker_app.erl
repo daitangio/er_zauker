@@ -15,7 +15,7 @@
 %% xml is supported only because it is used a lot on some java projects
 %% but personally I hate it.
 %% .cs=C# source file
--define(SCAN_REGEXP,".*[.](java|xml|c|cpp|erl|sql|cs|txt|markdown|properties|ini|el|rb|php)$").
+-define(SCAN_REGEXP,".*[.](java|xml|c|cpp|erl|sql|cs|txt|markdown|properties|ini|el|rb|php|coffee)$").
 
 
 %% ===================================================================
@@ -36,8 +36,10 @@ stop(_State) ->
 startIndexer()->
     er_zauker_rpool:start_link(),    
     register(er_zauker_indexer,spawn(er_zauker_app, indexerDaemon, [ 0,0 ] )),   
-    io:format("~n-------------------------------"),
-    io:format("~n-- Started Er Zauker App -----~n"),
+    io:format("~n---------------------------------------------------"),
+    io:format("~n--------------- Started Er Zauker App -------------"),
+    io:format("~n- $Id$ -"),
+    io:format("~n"),
     ok.
 
 

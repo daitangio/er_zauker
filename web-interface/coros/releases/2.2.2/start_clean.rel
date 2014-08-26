@@ -1,0 +1,3 @@
+%% rel generated at {2014,8,25} {16,36,26}
+{release,{"start_clean",[]},{erts,"6.1"},[{kernel,"3.0.1"},{stdlib,"2.1"}]}.
+

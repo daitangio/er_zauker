@@ -116,6 +116,20 @@ trigram_split_test()->
     io:format("Trigram:~p~n",[Trigram]),
     ?assertEqual("Gre",Trigram).
 
+trigram_split_case_single3_test()->
+    T1=er_zauker_util:trigram("Pip"),
+    ?assertEqual(["pip"],T1).
+
+
+trigram_split_rotation_test()->
+    T1=er_zauker_util:trigram("Pip12"),
+    ?assertEqual(["pip","ip1","p12"],T1).
+
+
+trigram_split_no_size_3_test()->
+    Trigram=er_zauker_util:trigram("Pi"),
+    ?assertEqual([],Trigram).
+
 %% Client split and search test
 %% termLowercase=term.downcase()
 %% Split in trigram and add prefix:
@@ -207,7 +221,7 @@ search_works1()->
 
 search_works2()->    
     er_zauker_util:load_file("../test_files/test_text1.txt"),
-    SearchFilesResult=er_zauker_app:erlist("spirali"),
+    SearchFilesResult=er_zauker_app:erlist("spiralidoso_se_lo_dici"),
     ?assertEqual([<<"../test_files/test_text1.txt">>],SearchFilesResult).
 
 subgram_does_not_work()->

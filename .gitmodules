@@ -1,0 +1,3 @@
+[submodule "web-interface/nitrogen"]
+	path = web-interface/nitrogen
+	url = https://github.com/nitrogen/nitrogen.git

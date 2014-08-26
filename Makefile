@@ -3,8 +3,8 @@ REBAR=`which rebar || ./rebar`
 # -s lager
 # +K true enable kernel poll
 ERLANG_OPTS=-name Cli -setCookie ErZaukerCli  -pa deps/*/ebin/ -pa ebin/ +K true -smp enable  ${ERL_ARGS}
-all: deps compile help
-deps:
+all: get-deps compile eunit help
+get-deps:
 	@$(REBAR) get-deps
 compile:
 	@$(REBAR) --jobs 8 compile
@@ -25,7 +25,8 @@ pure-cli:
 	rebar shell
 
 test-indexer: compile
-	erl  $(ERLANG_OPTS) -eval 'er_zauker_app:startIndexer(),er_zauker_indexer!{self(),directory,"src/"},er_zauker_app:wait_worker_done(),init:stop().'
+	@echo $(CURDIR)/src
+	erl  $(ERLANG_OPTS) -eval 'er_zauker_app:startIndexer(),er_zauker_indexer!{self(),directory,"$(CURDIR)/src/"},er_zauker_app:wait_worker_done(),init:stop().'
 
 test-big-project: compile
 	erl $(ERLANG_OPTS) -eval 'er_zauker_app:startIndexer(),er_zauker_indexer!{self(),directory,"$(ER_TEST_PROJECT)"},er_zauker_app:wait_worker_done(),init:stop().'
@@ -47,6 +48,7 @@ check:
 
 help:
 	@echo "Useful targets:"
+	@echo "all              build all"
 	@echo "test-big-project will index project pointed by environment variable ER_TEST_PROJECT=$(ER_TEST_PROJECT)"
 	@echo "benchmark        will benchmark (via eprof) the project pointed by  ER_TEST_PROJECT (slow down things)"
 	@echo "cli              will offer you a ready to use erlang shell"
