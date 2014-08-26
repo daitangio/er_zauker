@@ -14,8 +14,7 @@ body() ->
 
 inner_body() -> 
     [
-        #h1 { text=title() },
-	#spinner { style="text-align:center;" },
+        #spinner { style="text-align:center;" },
         "
         Code Search:
         ",
@@ -44,10 +43,7 @@ event(do_search)->
 		#p { body="At least 3 chars" }]);
 	false ->
 	    Candidates=er_zauker_app:erlist(SearchString),
-	    ?PRINT({result,Candidates}),
-	    %% Now call grepping in the background to filter out candidates
-	    %% grep -n -C --no-messages  would be great
-	    %% we cycle on every guy to get more control    
+	    %% ?PRINT({result,Candidates}),
 	    doGrep(SearchString,Candidates),
 	    bho
     end.
@@ -91,9 +87,17 @@ grepize(Query,ListOfBinary,Acc)->
 	[ FirstBinary | Rest ] ->
 	    FileName=binary_to_list(FirstBinary),
 	    FullCmd = "grep -n  -C1 -i --no-messages " ++ Query ++ " " ++ FileName,
-	    ?PRINT({grep,FullCmd}),
+	    %% ?PRINT({grep,FullCmd}),
 	    %% string:tokens(os:cmd(FullCmd), "\n")
-	    NewAcc= [ "File:"++FileName++"\n" ++ os:cmd(FullCmd) | Acc],
+	    SingleResult=os:cmd(FullCmd),
+	    %%% ?PRINT({r,SingleResult}),
+	    case SingleResult of
+		[] ->
+		    % Nothing 2 do...
+		    NewAcc= Acc;
+		_ ->Hilighted=re:replace(SingleResult, Query, "<b>"++Query++"</b>", [global,{return,list}]),
+		    NewAcc= [ "<i>File:"++FileName++"</i>\n" ++Hilighted ++" "| Acc]
+	    end,
 	    grepize(Query,Rest,NewAcc)
     end.
     

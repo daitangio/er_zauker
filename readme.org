@@ -49,16 +49,28 @@ maxmemory-policy noeviction
 
 
 * About the web interface (COROS)
-Coros  (will) spots 
+Coros (a nitrogen webapp) spots 
 1) a simple search engine
 1) a github based "download and index" functionality
-   This function will be able to download and index a provided git repository
+   This function is able to download and index a provided git repository, dowloading only a bunch of revision
 
 
 
+To use coros, type:
+#+BEGIN_SRC sh
+  make all
+  cd web-interface/coros
+  make dev
+#+END_SRC
+Now open a browser to http://localhost:8000 and enjoy a moder, ajax-powered er_zauker web interface.
+Results are hilighted in bold,
+At the moment the search is done using a slow grep, so be patient.
+In the future it will be done via an ajax mechanics.
+
+At the moment Coros is tested only under Unix and under Erlang R17.
 
 * New features!
-** v0.0.6 (incubating)
+** v0.0.6
  + Added nitrogen web interface (codename: COROS)
    It is not embedded, it is a standalone app depending con code-zauker
 ** v0.0.5
