@@ -15,14 +15,13 @@ body() ->
 inner_body() -> 
     [
         #h1 { text=title() },
-        #p{},
+	#spinner { style="text-align:center;" },
         "
         Search for something and press enter:
         ",
         #textbox{ id=q, postback=do_search},
         #p{},
-	#panel { id=search_result, body="SearchResults Here" },
-	#p{}
+	#panel { id=search_result, body="SearchResults Here" }
     ].
 	
 event(click) ->
@@ -35,22 +34,59 @@ event(do_search)->
     SearchString=wf:q(q),
     ?PRINT({requested, SearchString, now()}),
     Candidates=er_zauker_app:erlist(SearchString),
-    %% ?PRINT({result,Candidates}),
+    ?PRINT({result,Candidates}),
     %% Now call grep in the background to filter out candidates
     %% grep -n -C --no-messages  would be great
     %% we cycle on every guy to get more control
-    doGrep(Candidates),
+    doGrep(SearchString,Candidates),
     bho.
 
-doGrep(Stuff2Process) ->
+doGrep(Query,Stuff2Process) ->
     %% ?PRINT({grepping,Stuff2Process}),
     case Stuff2Process of
 	[] ->
 	    wf:update(search_result,[
-		#p { body="Nothing Found" },
-		#p { body=io_lib:format("~p", [now()]) }]);
-	_FileCandidates->
+		#p { body="Nothing Found" }]);
+	FileCandidates->
+	    %% First of all list comprenshion	    
+	    Grepped=grepize(Query,FileCandidates,[]),
+	    NitrogenRecords=formatHtml(Grepped),
 	    wf:update(search_result,[
-		#p { body="Search Results:" },
-		#p { body=io_lib:format("~p", [now()]) }])
+		#p { body="Record(s) Found:" ++ integer_to_list(string:len(Grepped)) },
+		#list{ 
+		    numbered=true,
+		    body=NitrogenRecords}])
     end.
+
+%% Return a listitem of list/listitems...
+formatHtml(ListOfLines) ->
+    case ListOfLines of
+	[] ->
+	    [];
+	[ SingleResult | Rest] ->
+	    %% Split line providing br
+	    ResultLines=[ #listitem { body=X} ||  X <- string:tokens(SingleResult,"\n") ],
+	    [ #listitem{ body=[ #list{ numbered=false, body=ResultLines}] } | formatHtml(Rest)]
+    end.
+
+%%ListOfBinary:: <<"src/er_zauker_app.erl">>
+%% Tip: do a guard to define a different function for less stuff
+
+grepize(Query,ListOfBinary,Acc)->
+    case ListOfBinary of
+	[] ->
+	    ?PRINT({searchresult,Acc}),
+	    Acc;
+	[ FirstBinary | Rest ] ->
+	    FileName=binary_to_list(FirstBinary),
+	    FullCmd = "grep -n  -C1 -i --no-messages " ++ Query ++ " " ++ FileName,
+	    ?PRINT({grep,FullCmd}),
+	    %% string:tokens(os:cmd(FullCmd), "\n")
+	    NewAcc= [ "File:"++FileName++"\n" ++ os:cmd(FullCmd) | Acc],
+	    grepize(Query,Rest,NewAcc)
+    end.
+    
+%% ---------------------------------------------------------------------------
+-spec shell_quote(string()) -> string().
+%% @doc Replace all ' by \'
+shell_quote(String) -> lists:flatten(lists:map(fun($') -> "\\'"; (C) -> C end, String)).

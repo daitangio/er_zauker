@@ -36,9 +36,10 @@ stop(_State) ->
 startIndexer()->
     er_zauker_rpool:start_link(),    
     register(er_zauker_indexer,spawn(er_zauker_app, indexerDaemon, [ 0,0 ] )),   
-    io:format("~n-------------------------------"),
-    io:format("~n-- Started Er Zauker App -----~n"),
-    io:format("~n-- $Id$ -----~n"),
+    io:format("~n---------------------------------------------------"),
+    io:format("~n--------------- Started Er Zauker App -------------"),
+    io:format("~n- $Id$ -"),
+    io:format("~n"),
     ok.
 
 
