@@ -15,7 +15,7 @@
 %% xml is supported only because it is used a lot on some java projects
 %% but personally I hate it.
 %% .cs=C# source file
--define(SCAN_REGEXP,".*[.](java|xml|c|cpp|erl|sql|cs|txt|markdown|properties|ini|el|rb|php)$").
+-define(SCAN_REGEXP,".*[.](java|xml|c|cpp|erl|sql|cs|txt|markdown|properties|ini|el|rb|php|coffee)$").
 
 
 %% ===================================================================

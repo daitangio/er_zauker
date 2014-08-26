@@ -1,5 +1,8 @@
 .PHONY: fix-slim-release
 
+dev: all
+	$(CURDIR)/bin/nitrogen console
+
 all: get-deps plugins compile
 
 REBAR?=./rebar -q

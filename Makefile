@@ -3,7 +3,7 @@ REBAR=`which rebar || ./rebar`
 # -s lager
 # +K true enable kernel poll
 ERLANG_OPTS=-name Cli -setCookie ErZaukerCli  -pa deps/*/ebin/ -pa ebin/ +K true -smp enable  ${ERL_ARGS}
-all: get-deps compile help
+all: get-deps compile eunit help
 get-deps:
 	@$(REBAR) get-deps
 compile:
@@ -25,7 +25,8 @@ pure-cli:
 	rebar shell
 
 test-indexer: compile
-	erl  $(ERLANG_OPTS) -eval 'er_zauker_app:startIndexer(),er_zauker_indexer!{self(),directory,"src/"},er_zauker_app:wait_worker_done(),init:stop().'
+	@echo $(CURDIR)/src
+	erl  $(ERLANG_OPTS) -eval 'er_zauker_app:startIndexer(),er_zauker_indexer!{self(),directory,"$(CURDIR)/src/"},er_zauker_app:wait_worker_done(),init:stop().'
 
 test-big-project: compile
 	erl $(ERLANG_OPTS) -eval 'er_zauker_app:startIndexer(),er_zauker_indexer!{self(),directory,"$(ER_TEST_PROJECT)"},er_zauker_app:wait_worker_done(),init:stop().'

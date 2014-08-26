@@ -17,10 +17,15 @@ inner_body() ->
         #h1 { text=title() },
 	#spinner { style="text-align:center;" },
         "
-        Search for something and press enter:
+        Code Search:
         ",
         #textbox{ id=q, postback=do_search},
         #p{},
+	#link { 
+	    url="meganoid", text="Download and Index open source project" ,
+	    style="text-align:center;"
+	},
+	  
 	#panel { id=search_result, body="SearchResults Here" }
     ].
 	
@@ -33,20 +38,26 @@ event(click) ->
 event(do_search)->
     SearchString=wf:q(q),
     ?PRINT({requested, SearchString, now()}),
-    Candidates=er_zauker_app:erlist(SearchString),
-    ?PRINT({result,Candidates}),
-    %% Now call grep in the background to filter out candidates
-    %% grep -n -C --no-messages  would be great
-    %% we cycle on every guy to get more control
-    doGrep(SearchString,Candidates),
-    bho.
+    case string:len(SearchString)<3 of
+	true ->
+	    wf:update(search_result,[
+		#p { body="At least 3 chars" }]);
+	false ->
+	    Candidates=er_zauker_app:erlist(SearchString),
+	    ?PRINT({result,Candidates}),
+	    %% Now call grepping in the background to filter out candidates
+	    %% grep -n -C --no-messages  would be great
+	    %% we cycle on every guy to get more control    
+	    doGrep(SearchString,Candidates),
+	    bho
+    end.
 
 doGrep(Query,Stuff2Process) ->
     %% ?PRINT({grepping,Stuff2Process}),
     case Stuff2Process of
 	[] ->
 	    wf:update(search_result,[
-		#p { body="Nothing Found" }]);
+		#p { body="Nothing Found for " ++ Query }]);
 	FileCandidates->
 	    %% First of all list comprenshion	    
 	    Grepped=grepize(Query,FileCandidates,[]),
