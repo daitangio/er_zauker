@@ -76,30 +76,45 @@ formatHtml(ListOfLines) ->
 	    [ #listitem{ body=[ #list{ numbered=false, body=ResultLines}] } | formatHtml(Rest)]
     end.
 
-%%ListOfBinary:: <<"src/er_zauker_app.erl">>
-%% Tip: do a guard to define a different function for less stuff
+%% This value DEPENDS on how much can be long a cmd line on your Unix.
+%% Increase at your own risc
+-define(MAX_GREP_ELEMENTS,360).
 
-grepize(Query,ListOfBinary,Acc)->
-    case ListOfBinary of
-	[] ->
-	    ?PRINT({searchresult,Acc}),
-	    Acc;
-	[ FirstBinary | Rest ] ->
-	    FileName=binary_to_list(FirstBinary),
-	    FullCmd = "grep -n  -C1 -i --no-messages " ++ Query ++ " " ++ FileName,
-	    %% ?PRINT({grep,FullCmd}),
-	    %% string:tokens(os:cmd(FullCmd), "\n")
-	    SingleResult=os:cmd(FullCmd),
-	    %%% ?PRINT({r,SingleResult}),
-	    case SingleResult of
-		[] ->
-		    % Nothing 2 do...
-		    NewAcc= Acc;
-		_ ->Hilighted=re:replace(SingleResult, Query, "<b>"++Query++"</b>", [global,{return,list}]),
-		    NewAcc= [ "<i>File:"++FileName++"</i>\n" ++Hilighted ++" "| Acc]
-	    end,
-	    grepize(Query,Rest,NewAcc)
-    end.
+%%ListOfBinary:: <<"src/er_zauker_app.erl">>
+%% To avoid function_clause error, we also define a generic guy... which split the work down the street
+grepize(_Query,[],Acc) ->
+    ?PRINT({searchresult_size, length(Acc)}),
+    Acc;
+grepize(Query,ListOfBinary,Acc) when length(ListOfBinary) =< ?MAX_GREP_ELEMENTS   ->
+    FileNameListWithSpace = lists:flatmap(fun(X)->[ binary_to_list(X)++" "] end,ListOfBinary),
+    FileNames=lists:flatten(FileNameListWithSpace),    
+    FullCmd = "grep -n  -C1 -i --no-messages " ++ Query ++ " " ++ FileNames,
+    %% Grep will split result easily via a "--\n" line, so we split it:
+    %% Example:
+    %% [code/er_zauker>grep -C1 -n  MAX_CONNECTIONS src/*
+    %% src/er_zauker_rpool.erl-22-%% or you will start getting errors
+    %% src/er_zauker_rpool.erl:23:-define(MAX_CONNECTIONS,1000).
+    %% src/er_zauker_rpool.erl-24-
+    %% --
+    %% src/er_zauker_rpool.erl-50-init([]) ->
+    %% src/er_zauker_rpool.erl:51:    State=?MAX_CONNECTIONS,
+    %% src/er_zauker_rpool.erl-52-    {ok,State}.    
+    BulkResults=os:cmd(FullCmd),
+    SplittedGuys=[ re:replace(wf:html_encode(X), Query, "<b>"++Query++"</b>", [caseless, global,{return,list}])   ||  X <- string:tokens(BulkResults,"\n"), X /= "--" ],  
+    %% TODO: First line will be in the form of
+    %% filename-line-text
+    %% so we should be able extract the file name easyl!
+    NewAcc=lists:append(SplittedGuys,Acc),
+    NewAcc;
+grepize(Query,ListOfBinary,Acc) ->
+    %% Split The list in bulks...
+    %% the first part is very tiny, so we ensutre we enter in above definition ^^^^^^^^^^^^^^
+    LSize=?MAX_GREP_ELEMENTS,    
+    {Lone,Ltwo} = lists:split(LSize,ListOfBinary),
+    ?PRINT({splitting,LSize, remains, length(Ltwo)}),
+    %%?PRINT({splitted1, Lone}),
+    AccPart1=grepize(Query,Lone,Acc),
+    grepize(Query,Ltwo,AccPart1).
     
 %% ---------------------------------------------------------------------------
 -spec shell_quote(string()) -> string().

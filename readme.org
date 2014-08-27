@@ -63,7 +63,7 @@ To use coros, type:
   make dev
 #+END_SRC
 Now open a browser to http://localhost:8000 and enjoy a moder, ajax-powered er_zauker web interface.
-Results are hilighted in bold,
+Results are hilighted in bold.
 At the moment the search is done using a slow grep, so be patient.
 In the future it will be done via an ajax mechanics.
 
