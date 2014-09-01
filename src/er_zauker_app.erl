@@ -7,7 +7,7 @@
 %% Application callbacks
 -export([start/2, stop/1, startIndexer/0, 
 	 indexerDaemon/2,indexDirectory/1,makeSearchTrigram/1,listFileIds/2,map_ids_to_files/2,
-	 erlist/1,
+	 erlist/1,erlist/2,
 	 wait_worker_done/0]).
 
 %% Supported languages by CodeZauker are filtered via the following regexp
@@ -135,11 +135,15 @@ priv_index_file(Filename, Acc)->
 
 %%% Client SIDE API
 
-
 erlist(SearchString)->
-    {ok,C}=eredis:start_link(),
-    Sgram=makeSearchTrigram(SearchString),
-    
+    %% Default timeout on gen server is 5000,
+    %% too low for a big redis and a long word to SINTER
+    erlist(SearchString,10000).
+
+erlist(SearchString, Timeout)->    
+    ReconnectSleep=100,
+    {ok,C}=eredis:start_link("127.0.0.1", 6379, 0, "",ReconnectSleep,Timeout),
+    Sgram=makeSearchTrigram(SearchString),    
     Ids=listFileIds(Sgram,C),
     map_ids_to_files(Ids,C).
 

@@ -42,8 +42,8 @@ event(do_search)->
 	    wf:update(search_result,[
 		#p { body="At least 3 chars" }]);
 	false ->
-	    Candidates=er_zauker_app:erlist(SearchString),
-	    %% ?PRINT({result,Candidates}),
+	    %% GG: Enlarged timeout
+	    Candidates=er_zauker_app:erlist(SearchString,30000),
 	    doGrep(SearchString,Candidates),
 	    bho
     end.
