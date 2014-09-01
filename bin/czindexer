@@ -1,0 +1,79 @@
+#!/bin/bash
+# -*- tab-width:4;indent-tabs-mode:nil -*-
+# ex: ts=4 sw=4 et
+ulimit  -n 10000 || { echo At least 10000 open files are needed ; ulimit -a ; exit; }
+
+
+RUNNER_SCRIPT_DIR=$(cd ${0%/*} && pwd)
+
+CALLER_DIR=$PWD
+
+RUNNER_BASE_DIR=${RUNNER_SCRIPT_DIR%/*}
+RUNNER_ETC_DIR=$RUNNER_BASE_DIR/etc
+# Note the trailing slash on $PIPE_DIR/
+PIPE_DIR=/tmp/$RUNNER_BASE_DIR/
+RUNNER_USER=
+
+# Identify the script name
+SCRIPT=`basename $0`
+
+# ------------------------------------
+# Use $CWD/vm.args if exists, otherwise releases/APP_VSN/vm.args, or else etc/vm.args
+if [ -e "$CALLER_DIR/vm.args" ]; then
+    VMARGS_PATH=$CALLER_DIR/vm.args
+    USE_DIR=$CALLER_DIR
+else
+    USE_DIR=$RUNNER_BASE_DIR
+    if [ -e "$RUNNER_BASE_DIR/releases/$APP_VSN/vm.args" ]; then
+        VMARGS_PATH="$RUNNER_BASE_DIR/releases/$APP_VSN/vm.args"
+    else
+        VMARGS_PATH="$RUNNER_ETC_DIR/vm.args"
+    fi
+fi
+
+
+
+# Extract the target node name from node.args
+NAME_ARG=`egrep '^-s?name' $VMARGS_PATH`
+if [ -z "$NAME_ARG" ]; then
+    echo "vm.args needs to have either -name or -sname parameter."
+    exit 1
+fi
+
+
+# Extract the target cookie
+COOKIE_ARG=`grep '^-setcookie' $VMARGS_PATH`
+if [ -z "$COOKIE_ARG" ]; then
+    echo "vm.args needs to have a -setcookie parameter."
+    exit 1
+    
+fi
+
+# Make sure CWD is set to the right dir
+cd $USE_DIR
+
+
+
+
+echo Running CZIndexer
+
+## Buliding launch line 
+MY_VM_ARGS="/tmp/czindexer-extras.vmargs.$$"
+
+INDEX_LINE=""
+for fname in $@; do    
+    fx="'"$fname"'"
+    echo '-eval "er_zauker_indexer!{self(),directory,'${fx}'}"' >>$MY_VM_ARGS
+done
+
+echo '-eval "er_zauker_app:wait_worker_done(),init:stop()."' >>$MY_VM_ARGS
+
+# Debugging:
+echo "DirectoryScan messages:"
+cat $MY_VM_ARGS
+
+echo "Root: $ROOTDIR"
+set -x -v -e
+erl  -args_file $VMARGS_PATH -args_file $MY_VM_ARGS
+
+rm $MY_VM_ARGS

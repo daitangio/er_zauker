@@ -72,8 +72,8 @@ waitAllWorkerDone(RunningWorker,StartTimestamp) when RunningWorker >0 ->
 		    %% Okey so nothing changed so far...sleep a bit less (printing is time consuming)
 		    timer:sleep(100)
 	    end,
-	    %% Sleep a bit MORE, to calculate about 2 seconds
-	    timer:sleep(1800),
+	    %% Master sleep value
+	    timer:sleep(9900),
 	    waitAllWorkerDone(RunningGuys,StartTimestamp)
     after 5000 ->
 	    io:format("~n-----------------------------~n"),

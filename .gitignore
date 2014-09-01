@@ -32,3 +32,4 @@ waf-*
 /ebin/
 .rebar
 eprof-report.log
+.depsolver_plt

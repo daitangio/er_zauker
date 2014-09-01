@@ -1,7 +1,7 @@
 
-## Name of the nitrogen node:
+## Name of the ErZauker node:
 ## short name used to be able to connect to others
--sname coros
+-sname indexer
 
 ## Heartbeat management; auto-restarts VM if it dies or becomes unresponsive
 ## (Disabled by default..use with caution!)
@@ -11,25 +11,25 @@
 +K true
 +A 5
 
+-smp enable
+
 ## Increase number of concurrent ports/sockets
 -env ERL_MAX_PORTS 4096
 
 ## Tweak GC to run more often 
 -env ERL_FULLSWEEP_AFTER 10
 
-## Include .beam files for site.
--pa ./site/ebin
 
 ## GG Include ZAUKER libraries
--pa ../../ebin
--pa ../../deps/eredis/ebin/
+-pa ./ebin
+-pa ./deps/eredis/ebin/
 
 
 ## Include libraries and rebar dependency paths
 -env ERL_LIBS ./lib
 
-## Run code at startup.
--eval "application:start(nitrogen)"
+## Run the indexer (consider also '-s eprof' and additional apps when ready
+-eval "er_zauker_app:startIndexer()"
 
 # GG Changed to support multi dev node connection
 -setcookie ErZaukerCluster
