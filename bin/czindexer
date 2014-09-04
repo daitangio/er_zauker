@@ -1,6 +1,12 @@
 #!/bin/bash
 # -*- tab-width:4;indent-tabs-mode:nil -*-
 # ex: ts=4 sw=4 et
+
+# Options to add:
+# -v verbose extra verbosity options
+# --redis-server pass@SERVER:port
+# pushed inside env variable and then processed
+
 ulimit  -n 10000 || { echo At least 10000 open files are needed ; ulimit -a ; exit; }
 
 
@@ -18,16 +24,16 @@ RUNNER_USER=
 SCRIPT=`basename $0`
 
 # ------------------------------------
-# Use $CWD/vm.args if exists, otherwise releases/APP_VSN/vm.args, or else etc/vm.args
-if [ -e "$CALLER_DIR/vm.args" ]; then
-    VMARGS_PATH=$CALLER_DIR/vm.args
+# Use $CWD/czindexer.args if exists, otherwise releases/APP_VSN/czindexer.args, or else etc/czindexer.args
+if [ -e "$CALLER_DIR/czindexer.args" ]; then
+    VMARGS_PATH=$CALLER_DIR/czindexer.args
     USE_DIR=$CALLER_DIR
 else
     USE_DIR=$RUNNER_BASE_DIR
-    if [ -e "$RUNNER_BASE_DIR/releases/$APP_VSN/vm.args" ]; then
-        VMARGS_PATH="$RUNNER_BASE_DIR/releases/$APP_VSN/vm.args"
+    if [ -e "$RUNNER_BASE_DIR/releases/$APP_VSN/czindexer.args" ]; then
+        VMARGS_PATH="$RUNNER_BASE_DIR/releases/$APP_VSN/czindexer.args"
     else
-        VMARGS_PATH="$RUNNER_ETC_DIR/vm.args"
+        VMARGS_PATH="$RUNNER_ETC_DIR/czindexer.args"
     fi
 fi
 
@@ -36,7 +42,7 @@ fi
 # Extract the target node name from node.args
 NAME_ARG=`egrep '^-s?name' $VMARGS_PATH`
 if [ -z "$NAME_ARG" ]; then
-    echo "vm.args needs to have either -name or -sname parameter."
+    echo "czindexer.args needs to have either -name or -sname parameter."
     exit 1
 fi
 
@@ -44,7 +50,7 @@ fi
 # Extract the target cookie
 COOKIE_ARG=`grep '^-setcookie' $VMARGS_PATH`
 if [ -z "$COOKIE_ARG" ]; then
-    echo "vm.args needs to have a -setcookie parameter."
+    echo "czindexer.args needs to have a -setcookie parameter."
     exit 1
     
 fi

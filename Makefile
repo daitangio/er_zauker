@@ -33,8 +33,7 @@ test-indexer: compile
 	erl  $(ERLANG_OPTS) -eval 'er_zauker_app:startIndexer(),er_zauker_indexer!{self(),directory,"$(CURDIR)/src/"},er_zauker_app:wait_worker_done(),init:stop().'
 
 test-big-project: compile
-	erl $(ERLANG_OPTS) -eval 'er_zauker_app:startIndexer(),er_zauker_indexer!{self(),directory,"$(ER_TEST_PROJECT)"},er_zauker_app:wait_worker_done(),init:stop().'
-
+	$(CURDIR)/bin/czindexer $(ER_TEST_PROJECT)
 
 
 benchmark: compile

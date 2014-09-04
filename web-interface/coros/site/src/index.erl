@@ -5,7 +5,7 @@
 
 main() -> #template { file="./site/templates/bare.html" }.
 
-title() -> "Welcome to the Coros Web search engine".
+title() -> "Welcome to the COde ZaukeR web Search engine -- COROS".
 
 body() ->
     #container_12 { body=[
