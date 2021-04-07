@@ -2,10 +2,8 @@
 
 log/*
 erts-*/*
-deps/*
 erl_crash.dump
 *~
-ebin/*
 *.svn*
 deps/mochiweb/doc/*
 src/erlydtl/erlydtl_parser.erl
@@ -33,3 +31,10 @@ waf-*
 .rebar
 eprof-report.log
 .depsolver_plt
+
+_build/
+# vscode container
+.devcontainer/
+
+# Hum this file is not versioned right now
+rebar.lock
