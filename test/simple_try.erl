@@ -49,9 +49,9 @@ incr_id_test_disabled()->
     ?assert(    list_to_integer(MyTestId) >= 0).
 
 split_trigram_1_test()->
-    {ok,TrigramSet}=er_zauker_util:split_file_in_trigrams("../readme.org"),	
+    {ok,TrigramSet}=er_zauker_util:split_file_in_trigrams("./readme.org"),	
     ?debugVal(sets:to_list(TrigramSet)),
-	?debugTime("Simple split of readme taken", er_zauker_util:split_file_in_trigrams("../readme.org")).
+	?debugTime("Simple split of readme taken", er_zauker_util:split_file_in_trigrams("./readme.org")).
 
 
 %% See http://sacharya.com/md5-in-erlang/
@@ -73,17 +73,16 @@ md5_t1_test()->
 md5sum_raw_test()->
     %% See File test_files/md5-sum-checksums.txt
     %% for expected values
-    Checksum=er_checksums:md5sum("../test_files/md5-test.txt"),
+    Checksum=er_zauker_util:md5_file("./test_files/md5-test.txt"),
     ?assertEqual("967a905f9ecd311e14e7582bc5b96898",Checksum).
 
 
 md5_file1_test()->
-     er_zauker_util:md5_file("../test_files/md5-test.txt").
+     er_zauker_util:md5_file("./test_files/md5-test.txt").
 
 md5_file2_test()->
      ?assertEqual("cf5c2458a05d9f0870cd9fbd3e01fa0e",
-		  er_zauker_util:md5_file("../test_files/md5-test2.txt")).
-
+		  er_zauker_util:md5_file("./test_files/md5-test2.txt")).
 
 %% -export([print_file_name/2]).
 

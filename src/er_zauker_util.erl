@@ -211,8 +211,29 @@ load_file(Fname,C)->
 %%  SEE https://github.com/sdanzan/erlang-systools/blob/master/src/checksums.erl
 
 
-md5_file(Fname)->
-    er_checksums:md5sum(Fname).
+md5_file(Filename)->
+	Stuff=readlines(Filename),
+    to_hex(crypto:hash(md5,Stuff)).
+
+
+readlines(FileName) ->
+    {ok, Device} = file:open(FileName, [read]),
+    try get_all_lines(Device)
+      after file:close(Device)
+    end.
+
+get_all_lines(Device) ->
+    case io:get_line(Device, "") of
+        eof  -> [];
+        Line -> Line ++ get_all_lines(Device)
+    end.
+
+to_hex(BitsString) ->
+    Size = bit_size(BitsString),
+    <<N:Size/big-unsigned-integer>> = BitsString,
+    Format = "~" ++ integer_to_list(Size div 4) ++ ".16.0b",
+    lists:flatten(io_lib:format(Format, [ N ])).
+
 
 %% scan_file_md5(Fd,TrigramSet, {ok, StringToSplit})->
 %%     NewSet=split_on_set(StringToSplit,TrigramSet),    

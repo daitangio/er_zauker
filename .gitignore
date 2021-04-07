@@ -38,3 +38,8 @@ _build/
 
 # Hum this file is not versioned right now
 rebar.lock
+
+TEST-*.xml
+
+# Test db is often here:
+dump.rdb

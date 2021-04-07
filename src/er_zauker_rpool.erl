@@ -10,7 +10,6 @@
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, code_change/3,terminate/2,handle_info/2]).
 
-%% Push hipe
 -compile([native]).
 
 %% @doc Define here max connections (redis default maximum is 10.000).

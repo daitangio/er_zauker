@@ -21,12 +21,12 @@
 
 
 ## GG Include ZAUKER libraries
--pa ./ebin
--pa ./deps/eredis/ebin/
+-pa ./_build/default/lib/er_zauker/ebin/
+-pa ./_build/default/lib/eredis/ebin/
 
 
 ## Include libraries and rebar dependency paths
--env ERL_LIBS ./lib
+-env ERL_LIBS _build/default/lib
 
 ## Run the indexer (consider also '-s eprof' and additional apps when ready
 -eval "er_zauker_app:startIndexer()"

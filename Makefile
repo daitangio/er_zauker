@@ -1,13 +1,12 @@
 # Set ER_TEST_PROJECT to a big test project (for instance a bunch of java source file....)
-REBAR=`which rebar || ./rebar`
+REBAR=./rebar3
 # -s lager
 # +K true enable kernel poll
-ERLANG_OPTS=-sname cli -setCookie ErZaukerCluster -pa deps/*/ebin/ -pa ebin/ +K true -smp enable  ${ERL_ARGS}
-all: get-deps compile eunit help
-get-deps:
-	@$(REBAR) get-deps
+ERLANG_OPTS=-sname cli -setCookie ErZaukerCluster -pa ./_build/default/lib/eredis/ebin/ -pa ./_build/default/lib/er_zauker/ebin/ +K true -smp enable  ${ERL_ARGS}
+all: compile eunit help
+
 compile:
-	@$(REBAR) --jobs 8 compile
+	@$(REBAR) compile
 
 distclean: clean
 	rm $(DEPSOLVER_PLT)
@@ -17,7 +16,7 @@ distclean: clean
 # /etc/init.d/redis-server stop ; rm /var/lib/redis/dump.rdb ; /etc/init.d/redis-server start
 # to cleanup your redis installation, beacuse some test can otherwise fail
 eunit:
-	@$(REBAR) --jobs 12 --verbose skip_deps=true eunit	
+	@$(REBAR) eunit	
 clean:
 	@$(REBAR) clean
 	rm -rf .eunit/*
@@ -28,6 +27,7 @@ cli:	compile
 pure-cli:
 	rebar shell
 
+# @$(REBAR) shell  --setcookie ErZaukerCluster --sname cli --script etc/test-indexer.escript
 test-indexer: compile
 	@echo $(CURDIR)/src
 	erl  $(ERLANG_OPTS) -eval 'er_zauker_app:startIndexer(),er_zauker_indexer!{self(),directory,"$(CURDIR)/src/"},er_zauker_app:wait_worker_done(),init:stop().'
@@ -52,14 +52,8 @@ check:
 # see http://blog.ericbmerritt.com/2012/09/02/proper-use-of-dialyzer.html
 #     https://gist.github.com/ericbmerritt/3600078
 
-DEPSOLVER_PLT=$(CURDIR)/.depsolver_plt
-
-$(DEPSOLVER_PLT):
-	dialyzer --output_plt $(DEPSOLVER_PLT) --build_plt \
-		--apps erts kernel stdlib crypto public_key -r deps
-
-dialyzer: $(DEPSOLVER_PLT)
-	dialyzer --plt $(DEPSOLVER_PLT) -Wrace_conditions --src src
+dialyzer:
+	$(REBAR) dialyzer
 
 # Monitor redis DBSIZE, memory CPU in a very light manner
 # See http://en.wikipedia.org/wiki/X11_color_names for color list

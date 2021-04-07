@@ -70,6 +70,8 @@ In the future it will be done via an ajax mechanics.
 At the moment Coros is tested only under Unix and under Erlang R17.
 
 * New features!
+** v0.1.0
+ + Migration to Erlang R 24
 ** v0.0.7
  + Added nitrogen web interface (codename: COROS)
    It is not embedded, it is a standalone app depending con code-zauker
@@ -160,3 +162,6 @@ rebar get-deps compile
 
 
 
+* About Erlang 24 migration
+- Replaced use of erlang:now/0 see
+ https://erlang.org/doc/apps/erts/time_correction.html#Dos_and_Donts

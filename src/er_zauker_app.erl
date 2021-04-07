@@ -49,7 +49,7 @@ startIndexer()->
 %% will return control only when all workers have done.
 %% 
 wait_worker_done()->
-    waitAllWorkerDone(1,erlang:now()).
+    waitAllWorkerDone(1,erlang:timestamp()).
 
 
 
@@ -62,7 +62,7 @@ waitAllWorkerDone(RunningWorker,StartTimestamp) when RunningWorker >0 ->
 	    if 
 		RunningGuys  /= RunningWorker -> 
 		    % Print and compute the microseconds (10^-6) time difference
-		    MsRunning=timer:now_diff(erlang:now(),StartTimestamp),
+		    MsRunning=timer:now_diff(erlang:timestamp(),StartTimestamp),
 		    MillisecondRunning=MsRunning/1000,
 		    SecondsRunning=MillisecondRunning/1000,
 		    FilesSec=TotalFilesDone/SecondsRunning,

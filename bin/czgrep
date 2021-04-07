@@ -1,5 +1,5 @@
 #!/bin/bash
 escriptSupport="$(dirname $0)/czlist.escript"
-#set -e -x 
+#set -e -x
 escript   $escriptSupport "$*"  | xargs grep  --no-messages -n --color "$*"
 
