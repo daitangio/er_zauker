@@ -55,7 +55,6 @@ Coros (a nitrogen webapp) spots
    This function is able to download and index a provided git repository, dowloading only a bunch of revision
 
 
-
 To use coros, type:
 #+BEGIN_SRC sh
   make all
@@ -72,6 +71,7 @@ At the moment Coros is tested only under Unix and under Erlang R17.
 * New features!
 ** v0.1.0
  + Migration to Erlang R 24
+ + Coros is still not migrted
 ** v0.0.7
  + Added nitrogen web interface (codename: COROS)
    It is not embedded, it is a standalone app depending con code-zauker
