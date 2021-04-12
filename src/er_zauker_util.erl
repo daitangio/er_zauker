@@ -1,6 +1,8 @@
 -module(er_zauker_util).
 -author("giovanni.giorgi@gioorgi.com").
 
+-compile([native]).
+
 %% GG Consider also 'episcina' as resource pool
 
 %% hipe optimization: please compile this module in x64
@@ -137,16 +139,16 @@ load_file_if_needed(Fname)->
     {ok, Stuff}=eredis:q(C,["GET",MD5Key]),
     case Stuff of
 	undefined ->
-	    %% format("~p Brand new file ~p ~n",[Fname,Stuff]),
+	    io:format("~p Brand new file~n",[Fname]),
 	    Reply=load_file(Fname,C),	    
-	    %%io:format("New MD5 ~p = ~p ~n",[MD5Key,CurrentChecksum]),
+	    io:format("New MD5 ~p = ~p ~n",[MD5Key,CurrentChecksum]),
 	    eredis:q(C,["SET",MD5Key,CurrentChecksum]);
 	Checksum2Verify -> 	    	    
 	    case iolist_equal(CurrentChecksum, Checksum2Verify) of
 		true ->
 		    %% io:format("File unchanged,Skipped:~p~n",[Fname]),
 		    Reply={already_indexed};
-	       false ->
+	    false ->
 		    %% TODO: we should the if from all the trigrams it belongs!
 		    io:format("File ~p changed~n",[Fname]),
 		    Reply=load_file(Fname,C),
@@ -215,6 +217,11 @@ md5_file(Filename)->
 	Stuff=readlines(Filename),
     to_hex(crypto:hash(md5,Stuff)).
 
+%% New improved version to avoid re-computing file content
+% md5_file_with_content(Filename)->
+%     Stuff=readlines(Filename),
+%     MD5=to_hex(crypto:hash(md5,Stuff)),
+%     {ok, MD5,Stuff}.
 
 readlines(FileName) ->
     {ok, Device} = file:open(FileName, [read]),

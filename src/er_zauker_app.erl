@@ -49,7 +49,7 @@ startIndexer()->
 %% will return control only when all workers have done.
 %% 
 wait_worker_done()->
-    waitAllWorkerDone(1,erlang:monotonic_time(microsecond)).
+    waitAllWorkerDone(1,erlang:monotonic_time(second)).
 
 
 
@@ -61,13 +61,10 @@ waitAllWorkerDone(RunningWorker,StartTimestamp) when RunningWorker >0 ->
 	{worker, RunningGuys, files_processed, TotalFilesDone} ->
 	    if 
 		RunningGuys  /= RunningWorker -> 
-		    % Print and compute the microseconds (10^-6) time difference
-		    MsRunning= erlang:monotonic_time(microsecond)-StartTimestamp,
-		    MillisecondRunning=MsRunning/1000,
-		    SecondsRunning=MillisecondRunning/1000,
+		    % Compute the time difference
+		    SecondsRunning= erlang:monotonic_time(second)-StartTimestamp,
 		    FilesSec=TotalFilesDone/SecondsRunning,
-		    %% io:format("[~p]ms Workers:~p Files processed:~p Files/sec: ~p ~n",[MillisecondRunning,RunningGuys,TotalFilesDone,FilesSec]),
-			io:format("[~p]ms Workers[~p]  Files processed:~p Files/sec: ~p ~n",[MillisecondRunning,RunningGuys,TotalFilesDone,FilesSec]),
+			io:format("[~p]s Workers[~p]  Files processed:~p Files/sec: ~p ~n",[SecondsRunning,RunningGuys,TotalFilesDone,FilesSec]),
 		    timer:sleep(200);
 	       true -> 
 		    %% Okey so nothing changed so far...sleep a bit
