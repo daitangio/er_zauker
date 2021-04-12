@@ -1,3 +1,6 @@
+* TODO FIX SLOWDOWN AFTER OTP 24 MIGRATION
+ER_TEST_PROJECT=/usr/local/lib/erlang/lib/ make benchmark
+
 * TODO 2013 Diary
 Add compatibility with code zauker 0.1.0
 
