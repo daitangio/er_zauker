@@ -24,5 +24,6 @@ start_link() ->
 %% ===================================================================
 
 init([]) ->
-    {ok, { {one_for_one, 5, 10}, []} }.
+    SupFlags = #{strategy => one_for_one, intensity => 1, period => 5},
+    {ok, { SupFlags, []} }.
 

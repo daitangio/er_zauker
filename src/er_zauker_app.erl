@@ -1,7 +1,7 @@
 -module(er_zauker_app).
 -author("giovanni.giorgi@gioorgi.com").
 
-
+-compile([native]).
 -behaviour(application).
 
 %% Application callbacks
@@ -49,7 +49,7 @@ startIndexer()->
 %% will return control only when all workers have done.
 %% 
 wait_worker_done()->
-    waitAllWorkerDone(1,erlang:timestamp()).
+    waitAllWorkerDone(1,erlang:monotonic_time(microsecond)).
 
 
 
@@ -62,22 +62,23 @@ waitAllWorkerDone(RunningWorker,StartTimestamp) when RunningWorker >0 ->
 	    if 
 		RunningGuys  /= RunningWorker -> 
 		    % Print and compute the microseconds (10^-6) time difference
-		    MsRunning=timer:now_diff(erlang:timestamp(),StartTimestamp),
+		    MsRunning= erlang:monotonic_time(microsecond)-StartTimestamp,
 		    MillisecondRunning=MsRunning/1000,
 		    SecondsRunning=MillisecondRunning/1000,
 		    FilesSec=TotalFilesDone/SecondsRunning,
-		    io:format("[~p]ms Worker:~p Files processed:~p Files/sec: ~p ~n",[MillisecondRunning,RunningGuys,TotalFilesDone,FilesSec]),
+		    %% io:format("[~p]ms Workers:~p Files processed:~p Files/sec: ~p ~n",[MillisecondRunning,RunningGuys,TotalFilesDone,FilesSec]),
+			io:format("[~p]ms Workers[~p]  Files processed:~p Files/sec: ~p ~n",[MillisecondRunning,RunningGuys,TotalFilesDone,FilesSec]),
 		    timer:sleep(200);
 	       true -> 
-		    %% Okey so nothing changed so far...sleep a bit less (printing is time consuming)
+		    %% Okey so nothing changed so far...sleep a bit
 		    timer:sleep(100)
 	    end,
 	    %% Master sleep value
-	    timer:sleep(9900),
+	    timer:sleep(990),
 	    waitAllWorkerDone(RunningGuys,StartTimestamp)
     after 5000 ->
 	    io:format("~n-----------------------------~n"),
-	    io:format(" Mmmm no info in the last 5 sec... when was running:~p~n",[RunningWorker]),
+	    io:format(" Mmmm no info in the last 5 sec... when was running:~p Workers~n",[RunningWorker]),
 	    io:format(" ?System is stuck? "),
 	    io:format("------------------------------~n"),
 	    waitAllWorkerDone(RunningWorker,StartTimestamp)
