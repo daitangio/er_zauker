@@ -179,6 +179,7 @@ map_ids_to_files_test()->
 
 setup()->
     er_zauker_rpool:startRedisPool(),
+    %%er_zauker_app:startIndexer(),
     %% Run Lager logger
     %%lager:start(),
     %%lager:info("Nice to meet you"),
@@ -205,6 +206,7 @@ seach_test_() ->
       ]
      }
     }.
+
 
 
 md5_search_works()->

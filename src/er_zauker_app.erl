@@ -91,22 +91,26 @@ indexerDaemon(RunningWorker, FilesProcessed)->
 	    NewPid=spawn(er_zauker_util, load_file_if_needed,[FileToIndex]),
 	    %% ALWAYS REINDEX: NewPid=spawn(er_zauker_util, load_file,[FileToIndex]),
 	    erlang:monitor(process,NewPid),
-	    indexerDaemon(RunningWorker+1,FilesProcessed);	
+	    indexerDaemon(RunningWorker+1,FilesProcessed);
 	{_Pid,directory, DirectoryPath} ->
 	    NewPid=spawn(er_zauker_app,indexDirectory,[DirectoryPath]),
 	    %%Mmm technically directory are not "files"
 	    erlang:monitor(process,NewPid),
 	    indexerDaemon(RunningWorker+1,FilesProcessed);
-	{'DOWN', _Reference, process, _Pid, _Reason} ->
-	    %%io:format("Just down: ~p~n", [{'DOWN', Reference, process, Pid, Reason}]),
-	    indexerDaemon(RunningWorker-1,FilesProcessed+1);
+	{'DOWN', Reference, process, Pid, normal} ->
+		% Well done boys!
+		indexerDaemon(RunningWorker-1,FilesProcessed+1);
+	{'DOWN', Reference, process, Pid, Reason} ->
+		%% MMMmm we must assume still files to be processed?
+		io:format("!!! Just down: ~p~n", [{'DOWN', Reference, process, Pid, Reason}]),
+		indexerDaemon(RunningWorker-1,FilesProcessed);	
 	{CallerPid,running} ->
 	    %%io:format("Asked Running Worker:~p~n",[RunningWorker]),
 	    CallerPid!{worker,RunningWorker},
-	    indexerDaemon(RunningWorker,FilesProcessed);		
+	    indexerDaemon(RunningWorker,FilesProcessed);
 	{Pid, files_processed} ->
 	    Pid!{files_processed,FilesProcessed},
-	    indexerDaemon(RunningWorker,FilesProcessed);		
+	    indexerDaemon(RunningWorker,FilesProcessed);
 	{Pid, report} ->
 	    Pid!{worker,RunningWorker,files_processed,FilesProcessed},
 	    indexerDaemon(RunningWorker,FilesProcessed);
@@ -118,6 +122,12 @@ indexerDaemon(RunningWorker, FilesProcessed)->
     end.
 	 
 
+% directory_count_files(Pid,DirectoryPath)->
+% 	Files2Scan=filelib:fold_files(DirectoryPath,?SCAN_REGEXP , true, fun priv_file_count/2, 0),
+% 	Pid ! { directory_count, Files2Scan}.
+
+% priv_file_count(_Filename, Acc)->
+% 	Acc+1.
 
 %% @doc returns the number of file to index.
 indexDirectory(Directory)->    
@@ -153,8 +163,6 @@ map_ids_to_files([],_C)->
     [].
 
 listFileIds(TrigramList,Redis)->
-    %% @redis.sinter(*trigramInAnd)
-    %%io:format("DEBUG COMMAND: ~p~n",[ ["SINTER" | TrigramList] ]),
     {ok, Stuff}=eredis:q(Redis,["SINTER" | TrigramList]),
     Stuff.
 

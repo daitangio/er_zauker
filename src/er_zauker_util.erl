@@ -139,9 +139,9 @@ load_file_if_needed(Fname)->
     {ok, Stuff}=eredis:q(C,["GET",MD5Key]),
     case Stuff of
 	undefined ->
-	    io:format("~p Brand new file~n",[Fname]),
+	    %% io:format("~p Brand new file~n",[Fname]),
 	    Reply=load_file(Fname,C),	    
-	    io:format("New MD5 ~p = ~p ~n",[MD5Key,CurrentChecksum]),
+	    %% io:format("New MD5 ~p = ~p ~n",[MD5Key,CurrentChecksum]),
 	    eredis:q(C,["SET",MD5Key,CurrentChecksum]);
 	Checksum2Verify -> 	    	    
 	    case iolist_equal(CurrentChecksum, Checksum2Verify) of
@@ -189,11 +189,13 @@ load_file(Fname,C)->
 	    {error,Reason};
 	{ok, TrigramSet}->
 	    %% io:format("Pushing data...~n"),	
-	    %% Now wrap the redis_pusher function inside a multi/exec transaction
+	    %% Wrap the redis_pusher function inside a multi/exec transaction
+        %% 202104 This wrap can lead to some timeouts
 	    {ok, <<"OK">>} = eredis:q(C, ["MULTI"]),    
 	    {data, _Redis, _FileId, _MyCounter }=sets:fold(fun redis_pusher/2,{data, C, FileId,0 },TrigramSet),
-	    eredis:q(C, ["EXEC"]),
-	    %% io:format("~p pushed: ~p~n", [Fname, MyCounter]),
+        %% Increase timeout up to 2 minutes  (30secs is not enough on a huge set)
+	    {ok, _ResponseList } = eredis:q(C, ["EXEC"],120000),
+	    io:format("~p pushed: ~p~n", [Fname, _MyCounter]),
 	    {ok}
     end.
 
