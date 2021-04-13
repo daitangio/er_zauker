@@ -96,22 +96,22 @@ indexerDaemon(RunningWorker, FilesProcessed,MonitorRefMap)->
 	    indexerDaemon(RunningWorker+1,FilesProcessed,NewRefMap);
 	{_Pid,directory, DirectoryPath} ->
 	    NewPid=spawn(er_zauker_app,indexDirectory,[DirectoryPath]),
-	    %%Mmm technically directory are not "files"
+	    %% Mmm technically directory are not "files"
 	    erlang:monitor(process,NewPid),
 	    indexerDaemon(RunningWorker+1,FilesProcessed,MonitorRefMap);
-	{'DOWN', _Reference, process, _Pid, normal} ->
-		% TODO Remove reference
-		indexerDaemon(RunningWorker-1,FilesProcessed+1,MonitorRefMap);
+	{'DOWN', Reference, process, _Pid, normal} ->
+		indexerDaemon(RunningWorker-1,FilesProcessed+1,
+			maps:remove(Reference,MonitorRefMap) );
 	{'DOWN', Reference, process, Pid, {timeout, Detail}} ->
 		%% MMMmm we must assume still files to be processed?
 		#{ Reference := FailedFile } = MonitorRefMap,
 		io:format("!! Timeout Error on ~p ~n Detail: ~p~n", [FailedFile, {'DOWN', Reference, process, Pid, {timeout, Detail}}]),		
 		% We suppose a timeout error and we push back
 		% Remove old Reference
-		maps:remove(Reference,MonitorRefMap),
+		UpdatedRefMap=maps:remove(Reference,MonitorRefMap),
 	    NewPid=spawn(er_zauker_util, load_file_if_needed,[FailedFile]),	    
 	    MonitorRef = erlang:monitor(process,NewPid),
-		NewRecoveryRefMap=MonitorRefMap#{ MonitorRef => FailedFile },
+		NewRecoveryRefMap=UpdatedRefMap#{ MonitorRef => FailedFile },
 		indexerDaemon(RunningWorker,FilesProcessed,NewRecoveryRefMap);
 	{CallerPid,running} ->
 	    %%io:format("Asked Running Worker:~p~n",[RunningWorker]),

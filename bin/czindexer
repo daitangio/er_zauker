@@ -59,7 +59,8 @@ fi
 cd $USE_DIR
 
 
-
+echo Running redis
+redis-server etc/redis.conf
 
 echo Running CZIndexer
 
