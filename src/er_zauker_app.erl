@@ -6,7 +6,7 @@
 
 %% Application callbacks
 -export([start/2, stop/1, startIndexer/0, 
-	 indexerDaemon/2,indexDirectory/1,makeSearchTrigram/1,listFileIds/2,map_ids_to_files/2,
+	 indexerDaemon/3,indexDirectory/1,makeSearchTrigram/1,listFileIds/2,map_ids_to_files/2,
 	 erlist/1,erlist/2,
 	 wait_worker_done/0]).
 
@@ -35,7 +35,7 @@ stop(_State) ->
 
 startIndexer()->
     er_zauker_rpool:start_link(),    
-    register(er_zauker_indexer,spawn(er_zauker_app, indexerDaemon, [ 0,0 ] )),   
+    register(er_zauker_indexer,spawn(er_zauker_app, indexerDaemon, [ 0,0 , #{} ] )),   
     io:format("~n---------------------------------------------------"),
     io:format("~n--------------- Started Er Zauker App -------------"),
     io:format("~n- $Id$ -"),
@@ -64,7 +64,7 @@ waitAllWorkerDone(RunningWorker,StartTimestamp) when RunningWorker >0 ->
 		    % Compute the time difference
 		    SecondsRunning= erlang:monotonic_time(second)-StartTimestamp,
 		    FilesSec=TotalFilesDone/SecondsRunning,
-			io:format("[~p]s Workers[~p]  Files processed:~p Files/sec: ~p ~n",[SecondsRunning,RunningGuys,TotalFilesDone,FilesSec]),
+			io:format("[~p]s Workers[~p] Files processed:~p Files/sec: ~p ~n",[SecondsRunning,RunningGuys,TotalFilesDone,FilesSec]),
 		    timer:sleep(200);
 	       true -> 
 		    %% Okey so nothing changed so far...sleep a bit
@@ -84,39 +84,48 @@ waitAllWorkerDone(0,_) ->
     io:format("All worker Finished").
 
 
-indexerDaemon(RunningWorker, FilesProcessed)->
+indexerDaemon(RunningWorker, FilesProcessed,MonitorRefMap)->
     receive
 	{_Pid,file,FileToIndex}->
-	    % Spawn a worker for this guy...
+	    % Spawn a worker for indexing this file
 	    NewPid=spawn(er_zauker_util, load_file_if_needed,[FileToIndex]),
 	    %% ALWAYS REINDEX: NewPid=spawn(er_zauker_util, load_file,[FileToIndex]),
-	    erlang:monitor(process,NewPid),
-	    indexerDaemon(RunningWorker+1,FilesProcessed);
+	    MonitorRef = erlang:monitor(process,NewPid),
+		NewRefMap=MonitorRefMap#{ MonitorRef => FileToIndex },
+		% TODO Store the REF in a small table
+	    indexerDaemon(RunningWorker+1,FilesProcessed,NewRefMap);
 	{_Pid,directory, DirectoryPath} ->
 	    NewPid=spawn(er_zauker_app,indexDirectory,[DirectoryPath]),
 	    %%Mmm technically directory are not "files"
 	    erlang:monitor(process,NewPid),
-	    indexerDaemon(RunningWorker+1,FilesProcessed);
-	{'DOWN', Reference, process, Pid, normal} ->
-		% Well done boys!
-		indexerDaemon(RunningWorker-1,FilesProcessed+1);
-	{'DOWN', Reference, process, Pid, Reason} ->
+	    indexerDaemon(RunningWorker+1,FilesProcessed,MonitorRefMap);
+	{'DOWN', _Reference, process, _Pid, normal} ->
+		% TODO Remove reference
+		indexerDaemon(RunningWorker-1,FilesProcessed+1,MonitorRefMap);
+	{'DOWN', Reference, process, Pid, {timeout, Detail}} ->
 		%% MMMmm we must assume still files to be processed?
-		io:format("!!! Just down: ~p~n", [{'DOWN', Reference, process, Pid, Reason}]),
-		indexerDaemon(RunningWorker-1,FilesProcessed);	
+		#{ Reference := FailedFile } = MonitorRefMap,
+		io:format("!! Timeout Error on ~p ~n Detail: ~p~n", [FailedFile, {'DOWN', Reference, process, Pid, {timeout, Detail}}]),		
+		% We suppose a timeout error and we push back
+		% Remove old Reference
+		maps:remove(Reference,MonitorRefMap),
+	    NewPid=spawn(er_zauker_util, load_file_if_needed,[FailedFile]),	    
+	    MonitorRef = erlang:monitor(process,NewPid),
+		NewRecoveryRefMap=MonitorRefMap#{ MonitorRef => FailedFile },
+		indexerDaemon(RunningWorker,FilesProcessed,NewRecoveryRefMap);
 	{CallerPid,running} ->
 	    %%io:format("Asked Running Worker:~p~n",[RunningWorker]),
 	    CallerPid!{worker,RunningWorker},
-	    indexerDaemon(RunningWorker,FilesProcessed);
+	    indexerDaemon(RunningWorker,FilesProcessed,MonitorRefMap);
 	{Pid, files_processed} ->
 	    Pid!{files_processed,FilesProcessed},
-	    indexerDaemon(RunningWorker,FilesProcessed);
+	    indexerDaemon(RunningWorker,FilesProcessed,MonitorRefMap);
 	{Pid, report} ->
 	    Pid!{worker,RunningWorker,files_processed,FilesProcessed},
-	    indexerDaemon(RunningWorker,FilesProcessed);
+	    indexerDaemon(RunningWorker,FilesProcessed,MonitorRefMap);
 	code_switch ->
 	    io:format("Reloading code...."),
-	    er_zauker_app:indexerDaemon(RunningWorker,FilesProcessed);
+	    er_zauker_app:indexerDaemon(RunningWorker,FilesProcessed,MonitorRefMap);
 	{Pid,stop} ->
 	    Pid!{stoped,self()}
     end.

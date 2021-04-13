@@ -17,8 +17,8 @@
 %% watch -d 'redis-cli client list | wc -l'
 %% 
 %% Erlang will magically optimize the load around this value.
-%% Note: Redis must have enough ram to concurrently save the index
-%% or you will start getting errors
+%% This value should also be near the operating system open files limit
+%% and also redis must be configured properly
 -define(MAX_CONNECTIONS,1000).
 
 start_link()->

@@ -193,8 +193,8 @@ load_file(Fname,C)->
         %% 202104 This wrap can lead to some timeouts
 	    {ok, <<"OK">>} = eredis:q(C, ["MULTI"]),    
 	    {data, _Redis, _FileId, _MyCounter }=sets:fold(fun redis_pusher/2,{data, C, FileId,0 },TrigramSet),
-        %% Increase timeout up to 2 minutes  (30secs is not enough on a huge set)
-	    {ok, _ResponseList } = eredis:q(C, ["EXEC"],120000),
+        %% Increased default timeout 
+	    {ok, _ResponseList } = eredis:q(C, ["EXEC"],60000),
 	    io:format("~p pushed: ~p~n", [Fname, _MyCounter]),
 	    {ok}
     end.

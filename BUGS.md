@@ -3,7 +3,7 @@ April 2021
 To fix Redis EXEC timeout we upgraded eredis library and then increased EXEC timeouts.
 
 After about 580 seconds some timeouts occur anyway, perphaps the exec transaction is too wide.
-
+Under approx. 160 workers the problem seems to disappear.
 
 Error:
 
