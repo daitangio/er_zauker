@@ -1,0 +1,26 @@
+{"1.2.0",
+[{<<"cowboy">>,{pkg,<<"cowboy">>,<<"2.4.0">>},1},
+ {<<"cowlib">>,{pkg,<<"cowlib">>,<<"2.3.0">>},2},
+ {<<"eredis">>,
+  {git,"https://github.com/wooga/eredis.git",
+       {ref,"6845ed50e13f456ecd115bcf9de666a58a1529dc"}},
+  0},
+ {<<"jiffy">>,
+  {git,"git://github.com/davisp/jiffy.git",
+       {ref,"37039ba32e950480715be74751a53339420a6fe1"}},
+  0},
+ {<<"leptus">>,
+  {git,"git://github.com/sinasamavati/leptus.git",
+       {ref,"e0d9bd2270dfa85bd5922e0a5c2d0289d2dc0ef9"}},
+  0},
+ {<<"ranch">>,{pkg,<<"ranch">>,<<"1.5.0">>},2}]}.
+[
+{pkg_hash,[
+ {<<"cowboy">>, <<"F1B72FABE9C8A5FC64AC5AC85FB65474D64733D1DF52A26FAD5D4BA3D9F70A9F">>},
+ {<<"cowlib">>, <<"BBD58EF537904E4F7C1DD62E6AA8BC831C8183CE4EFA9BD1150164FE15BE4CAA">>},
+ {<<"ranch">>, <<"F04166F456790FEE2AC1AA05A02745CC75783C2BFB26D39FAF6AEFC9A3D3A58A">>}]},
+{pkg_hash_ext,[
+ {<<"cowboy">>, <<"ADA25DBFD4E8779C5903471D8A84E98C303975B26619F1A5CB2B9C2B5D08414A">>},
+ {<<"cowlib">>, <<"D69585839B7354141E05E9687490E1C75D4DEA82EE77A4FF904EA5198B94D89B">>},
+ {<<"ranch">>, <<"86D40FC42AA47BCB6952DDF1DBFD3DA04B5BA69AFB65C322C99845913250B11F">>}]}
+].

@@ -8,7 +8,7 @@
 -export([start/2, stop/1, startIndexer/0, 
 	 indexerDaemon/3,indexDirectory/1,makeSearchTrigram/1,listFileIds/2,map_ids_to_files/2,
 	 erlist/1,erlist/2,
-	 wait_worker_done/0]).
+	 wait_worker_done/0, startWebInterface/0, startWebInterface/1]).
 
 %% Supported languages by CodeZauker are filtered via the following regexp
 %% Emacs lisp is very bad because generate a lot of trigrams
@@ -32,10 +32,26 @@ stop(_State) ->
     %% TODO: check if stopped itself
     ok.
 
+startWebInterface() ->
+	startWebInterface(true).
+
+startWebInterface(BootIndexer)->
+	ok = application:ensure_started(inets),
+    {ok, _} = application:ensure_all_started(leptus),
+	Options = [
+		{log_handlers, [{leptus_debug_log, default}]},
+		{port, 8000}
+
+	],
+    {ok, LeptuStatus} = leptus:start_listener(http, [{'_', [{er_coros, undefined_state}]}],Options),
+	io:format("~n ~p",[LeptuStatus]),
+	if BootIndexer =:= true->
+		startIndexer()
+	end.
 
 startIndexer()->
     er_zauker_rpool:start_link(),    
-    register(er_zauker_indexer,spawn(er_zauker_app, indexerDaemon, [ 0,0 , #{} ] )),   
+    register(er_zauker_indexer,spawn(er_zauker_app, indexerDaemon, [ 0,0 , #{} ] )),      
     io:format("~n---------------------------------------------------"),
     io:format("~n--------------- Started Er Zauker App -------------"),
     io:format("~n- $Id$ -"),

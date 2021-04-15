@@ -53,7 +53,7 @@ check:
 #     https://gist.github.com/ericbmerritt/3600078
 
 dialyzer:
-	$(REBAR) dialyzer
+	$(REBAR) dialyzer --statistics
 
 # Monitor redis DBSIZE, memory CPU in a very light manner
 # See http://en.wikipedia.org/wiki/X11_color_names for color list

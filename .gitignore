@@ -37,7 +37,8 @@ _build/
 .devcontainer/
 
 # Hum this file is not versioned right now
-rebar.lock
+# https://www.rebar3.org/docs/workflow/
+# rebar.lock
 
 TEST-*.xml
 
