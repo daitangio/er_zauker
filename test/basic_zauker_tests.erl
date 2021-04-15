@@ -179,6 +179,7 @@ map_ids_to_files_test()->
 
 setup()->
     er_zauker_rpool:startRedisPool(),
+    %%er_zauker_app:startIndexer(),
     %% Run Lager logger
     %%lager:start(),
     %%lager:info("Nice to meet you"),
@@ -207,51 +208,52 @@ seach_test_() ->
     }.
 
 
+
 md5_search_works()->
-    er_zauker_util:load_file_if_needed("../test_files/test_text1.txt"),
-    er_zauker_util:load_file_if_needed("../test_files/test_text1.txt"),
+    er_zauker_util:load_file_if_needed("./test_files/test_text1.txt"),
+    er_zauker_util:load_file_if_needed("./test_files/test_text1.txt"),
     SearchFilesResult=er_zauker_app:erlist("califragilisti"),
-    ?assertEqual([<<"../test_files/test_text1.txt">>],SearchFilesResult).
+    ?assertEqual([<<"./test_files/test_text1.txt">>],SearchFilesResult).
     
 
 search_works1()->    
-    er_zauker_util:load_file("../test_files/test_text1.txt"),
+    er_zauker_util:load_file("./test_files/test_text1.txt"),
     SearchFilesResult=er_zauker_app:erlist("califragilisti"),
-    ?assertEqual([<<"../test_files/test_text1.txt">>],SearchFilesResult).
+    ?assertEqual([<<"./test_files/test_text1.txt">>],SearchFilesResult).
 
 search_works2()->    
-    er_zauker_util:load_file("../test_files/test_text1.txt"),
+    er_zauker_util:load_file("./test_files/test_text1.txt"),
     SearchFilesResult=er_zauker_app:erlist("spiralidoso_se_lo_dici"),
-    ?assertEqual([<<"../test_files/test_text1.txt">>],SearchFilesResult).
+    ?assertEqual([<<"./test_files/test_text1.txt">>],SearchFilesResult).
 
 subgram_does_not_work()->
-    er_zauker_util:load_file("../test_files/test_text1.txt"),
+    er_zauker_util:load_file("./test_files/test_text1.txt"),
     SearchFilesResult=er_zauker_app:erlist("su"),
     ?assertEqual([],SearchFilesResult).
 
 %% @doc this test is a negative one: a little useful
 %% we use it only to avoid some bad cases in which we return wrong results!
 search_works_no_matchtest()->
-    er_zauker_util:load_file("../test_files/test_text1.txt"),
+    er_zauker_util:load_file("./test_files/test_text1.txt"),
     SearchFilesResult=er_zauker_app:erlist("yeppa,we hope this set of trigrams will not be on any file set used for test."),
     ?assertEqual([],SearchFilesResult).
 
 
 
 iso_8859_breaks()->
-    %% ?assertMatch( {error,_},er_zauker_util:load_file("../test_files/iso-8859-file.txt")).
-    ?assertMatch( {ok},er_zauker_util:load_file("../test_files/iso-8859-file.txt")).
+    %% ?assertMatch( {error,_},er_zauker_util:load_file("./test_files/iso-8859-file.txt")).
+    ?assertMatch( {ok},er_zauker_util:load_file("./test_files/iso-8859-file.txt")).
 
 
 space_guy_never_recoded()->
-    er_zauker_util:load_file("../test_files/test_all_spaces.txt"),
+    er_zauker_util:load_file("./test_files/test_all_spaces.txt"),
     SearchFilesResult=er_zauker_app:erlist("    "),
     ?assertEqual([],SearchFilesResult).
 
 
 
 zauker_skip_aready_indexed_test()->
-    Fname = "../test_files/md5-test2.txt",
+    Fname = "./test_files/md5-test2.txt",
     Checksum = "cf5c2458a05d9f0870cd9fbd3e01fa0e",
     %%?assertEqual(Checksum,er_zauker_util:md5_file(Fname)),
     er_zauker_util:load_file_if_needed(Fname),
@@ -266,7 +268,7 @@ zauker_skip_aready_indexed_test()->
 ensure_good_trigrams()->
     %% TODO: Delete bad trigram at the start, to avoid false positives...
     %% GG Try to force bad trigrams like trigram:ci:\n  
-    ?assertMatch( {ok},er_zauker_util:load_file("../test_files/bad_trigram_split.txt")),
+    ?assertMatch( {ok},er_zauker_util:load_file("./test_files/bad_trigram_split.txt")),
     {ok, C} = eredis:start_link(),
     {ok, Stuff}=eredis:q(C,["KEYS","trigram:ci:*"]),  
     %% "trigram:ci:abc"

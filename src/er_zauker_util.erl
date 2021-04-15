@@ -1,6 +1,8 @@
 -module(er_zauker_util).
 -author("giovanni.giorgi@gioorgi.com").
 
+-compile([native]).
+
 %% GG Consider also 'episcina' as resource pool
 
 %% hipe optimization: please compile this module in x64
@@ -137,16 +139,16 @@ load_file_if_needed(Fname)->
     {ok, Stuff}=eredis:q(C,["GET",MD5Key]),
     case Stuff of
 	undefined ->
-	    %% format("~p Brand new file ~p ~n",[Fname,Stuff]),
+	    %% io:format("~p Brand new file~n",[Fname]),
 	    Reply=load_file(Fname,C),	    
-	    %%io:format("New MD5 ~p = ~p ~n",[MD5Key,CurrentChecksum]),
+	    %% io:format("New MD5 ~p = ~p ~n",[MD5Key,CurrentChecksum]),
 	    eredis:q(C,["SET",MD5Key,CurrentChecksum]);
 	Checksum2Verify -> 	    	    
 	    case iolist_equal(CurrentChecksum, Checksum2Verify) of
 		true ->
 		    %% io:format("File unchanged,Skipped:~p~n",[Fname]),
 		    Reply={already_indexed};
-	       false ->
+	    false ->
 		    %% TODO: we should the if from all the trigrams it belongs!
 		    io:format("File ~p changed~n",[Fname]),
 		    Reply=load_file(Fname,C),
@@ -187,11 +189,13 @@ load_file(Fname,C)->
 	    {error,Reason};
 	{ok, TrigramSet}->
 	    %% io:format("Pushing data...~n"),	
-	    %% Now wrap the redis_pusher function inside a multi/exec transaction
+	    %% Wrap the redis_pusher function inside a multi/exec transaction
+        %% 202104 This wrap can lead to some timeouts
 	    {ok, <<"OK">>} = eredis:q(C, ["MULTI"]),    
 	    {data, _Redis, _FileId, _MyCounter }=sets:fold(fun redis_pusher/2,{data, C, FileId,0 },TrigramSet),
-	    eredis:q(C, ["EXEC"]),
-	    %% io:format("~p pushed: ~p~n", [Fname, MyCounter]),
+        %% Increased default timeout 
+	    {ok, _ResponseList } = eredis:q(C, ["EXEC"],60000),
+	    io:format("~p pushed: ~p~n", [Fname, _MyCounter]),
 	    {ok}
     end.
 
@@ -211,8 +215,34 @@ load_file(Fname,C)->
 %%  SEE https://github.com/sdanzan/erlang-systools/blob/master/src/checksums.erl
 
 
-md5_file(Fname)->
-    er_checksums:md5sum(Fname).
+md5_file(Filename)->
+	Stuff=readlines(Filename),
+    to_hex(crypto:hash(md5,Stuff)).
+
+%% New improved version to avoid re-computing file content
+% md5_file_with_content(Filename)->
+%     Stuff=readlines(Filename),
+%     MD5=to_hex(crypto:hash(md5,Stuff)),
+%     {ok, MD5,Stuff}.
+
+readlines(FileName) ->
+    {ok, Device} = file:open(FileName, [read]),
+    try get_all_lines(Device)
+      after file:close(Device)
+    end.
+
+get_all_lines(Device) ->
+    case io:get_line(Device, "") of
+        eof  -> [];
+        Line -> Line ++ get_all_lines(Device)
+    end.
+
+to_hex(BitsString) ->
+    Size = bit_size(BitsString),
+    <<N:Size/big-unsigned-integer>> = BitsString,
+    Format = "~" ++ integer_to_list(Size div 4) ++ ".16.0b",
+    lists:flatten(io_lib:format(Format, [ N ])).
+
 
 %% scan_file_md5(Fd,TrigramSet, {ok, StringToSplit})->
 %%     NewSet=split_on_set(StringToSplit,TrigramSet),    

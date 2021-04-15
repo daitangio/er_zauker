@@ -10,7 +10,6 @@
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, code_change/3,terminate/2,handle_info/2]).
 
-%% Push hipe
 -compile([native]).
 
 %% @doc Define here max connections (redis default maximum is 10.000).
@@ -18,8 +17,8 @@
 %% watch -d 'redis-cli client list | wc -l'
 %% 
 %% Erlang will magically optimize the load around this value.
-%% Note: Redis must have enough ram to concurrently save the index
-%% or you will start getting errors
+%% This value should also be near the operating system open files limit
+%% and also redis must be configured properly
 -define(MAX_CONNECTIONS,1000).
 
 start_link()->
@@ -33,7 +32,7 @@ wait4Connection() ->
     case R of
 	no_connections ->
 	    %% Retry in a snap...
-	    timer:sleep(1000),	    
+	    timer:sleep(500),	    
 	    wait4Connection();
 	{ok,C} ->
 	    C
@@ -53,7 +52,12 @@ init([]) ->
 
 handle_call(alloc, _From, RemainingConnections)->
     if RemainingConnections >0 ->
-	    {ok,ERedisResponse}=eredis:start_link(),	    
+	    {ok,ERedisResponse}=eredis:start_link("127.0.0.1", 6379, 
+            0, % DB number
+            "", % Passw
+            150,    % Recon sleep (deafult 100)
+            10000    % ConnectTimeout default 5000            
+        ),	    
 	    {reply, {ok,ERedisResponse}, RemainingConnections -1};
        true ->	   	    
 	    {reply,no_connections, RemainingConnections}

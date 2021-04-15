@@ -1,12 +1,12 @@
 -module(er_zauker_app).
 -author("giovanni.giorgi@gioorgi.com").
 
-
+-compile([native]).
 -behaviour(application).
 
 %% Application callbacks
 -export([start/2, stop/1, startIndexer/0, 
-	 indexerDaemon/2,indexDirectory/1,makeSearchTrigram/1,listFileIds/2,map_ids_to_files/2,
+	 indexerDaemon/3,indexDirectory/1,makeSearchTrigram/1,listFileIds/2,map_ids_to_files/2,
 	 erlist/1,erlist/2,
 	 wait_worker_done/0]).
 
@@ -35,7 +35,7 @@ stop(_State) ->
 
 startIndexer()->
     er_zauker_rpool:start_link(),    
-    register(er_zauker_indexer,spawn(er_zauker_app, indexerDaemon, [ 0,0 ] )),   
+    register(er_zauker_indexer,spawn(er_zauker_app, indexerDaemon, [ 0,0 , #{} ] )),   
     io:format("~n---------------------------------------------------"),
     io:format("~n--------------- Started Er Zauker App -------------"),
     io:format("~n- $Id$ -"),
@@ -49,7 +49,7 @@ startIndexer()->
 %% will return control only when all workers have done.
 %% 
 wait_worker_done()->
-    waitAllWorkerDone(1,erlang:now()).
+    waitAllWorkerDone(1,erlang:monotonic_time(second)).
 
 
 
@@ -61,23 +61,21 @@ waitAllWorkerDone(RunningWorker,StartTimestamp) when RunningWorker >0 ->
 	{worker, RunningGuys, files_processed, TotalFilesDone} ->
 	    if 
 		RunningGuys  /= RunningWorker -> 
-		    % Print and compute the microseconds (10^-6) time difference
-		    MsRunning=timer:now_diff(erlang:now(),StartTimestamp),
-		    MillisecondRunning=MsRunning/1000,
-		    SecondsRunning=MillisecondRunning/1000,
+		    % Compute the time difference
+		    SecondsRunning= erlang:monotonic_time(second)-StartTimestamp,
 		    FilesSec=TotalFilesDone/SecondsRunning,
-		    io:format("[~p]ms Worker:~p Files processed:~p Files/sec: ~p ~n",[MillisecondRunning,RunningGuys,TotalFilesDone,FilesSec]),
+			io:format("[~p]s Workers[~p] Files processed:~p Files/sec: ~p ~n",[SecondsRunning,RunningGuys,TotalFilesDone,FilesSec]),
 		    timer:sleep(200);
 	       true -> 
-		    %% Okey so nothing changed so far...sleep a bit less (printing is time consuming)
+		    %% Okey so nothing changed so far...sleep a bit
 		    timer:sleep(100)
 	    end,
 	    %% Master sleep value
-	    timer:sleep(9900),
+	    timer:sleep(990),
 	    waitAllWorkerDone(RunningGuys,StartTimestamp)
     after 5000 ->
 	    io:format("~n-----------------------------~n"),
-	    io:format(" Mmmm no info in the last 5 sec... when was running:~p~n",[RunningWorker]),
+	    io:format(" Mmmm no info in the last 5 sec... when was running:~p Workers~n",[RunningWorker]),
 	    io:format(" ?System is stuck? "),
 	    io:format("------------------------------~n"),
 	    waitAllWorkerDone(RunningWorker,StartTimestamp)
@@ -86,40 +84,59 @@ waitAllWorkerDone(0,_) ->
     io:format("All worker Finished").
 
 
-indexerDaemon(RunningWorker, FilesProcessed)->
+indexerDaemon(RunningWorker, FilesProcessed,MonitorRefMap)->
     receive
 	{_Pid,file,FileToIndex}->
-	    % Spawn a worker for this guy...
+	    % Spawn a worker for indexing this file
 	    NewPid=spawn(er_zauker_util, load_file_if_needed,[FileToIndex]),
 	    %% ALWAYS REINDEX: NewPid=spawn(er_zauker_util, load_file,[FileToIndex]),
-	    erlang:monitor(process,NewPid),
-	    indexerDaemon(RunningWorker+1,FilesProcessed);	
+	    MonitorRef = erlang:monitor(process,NewPid),
+		NewRefMap=MonitorRefMap#{ MonitorRef => FileToIndex },
+		% TODO Store the REF in a small table
+	    indexerDaemon(RunningWorker+1,FilesProcessed,NewRefMap);
 	{_Pid,directory, DirectoryPath} ->
 	    NewPid=spawn(er_zauker_app,indexDirectory,[DirectoryPath]),
-	    %%Mmm technically directory are not "files"
+	    %% Mmm technically directory are not "files"
 	    erlang:monitor(process,NewPid),
-	    indexerDaemon(RunningWorker+1,FilesProcessed);
-	{'DOWN', _Reference, process, _Pid, _Reason} ->
-	    %%io:format("Just down: ~p~n", [{'DOWN', Reference, process, Pid, Reason}]),
-	    indexerDaemon(RunningWorker-1,FilesProcessed+1);
+	    indexerDaemon(RunningWorker+1,FilesProcessed,MonitorRefMap);
+	{'DOWN', Reference, process, _Pid, normal} ->
+		indexerDaemon(RunningWorker-1,FilesProcessed+1,
+			maps:remove(Reference,MonitorRefMap) );
+	{'DOWN', Reference, process, Pid, {timeout, Detail}} ->
+		%% MMMmm we must assume still files to be processed?
+		#{ Reference := FailedFile } = MonitorRefMap,
+		io:format("!! Timeout Error on ~p ~n Detail: ~p~n", [FailedFile, {'DOWN', Reference, process, Pid, {timeout, Detail}}]),		
+		% We suppose a timeout error and we push back
+		% Remove old Reference
+		UpdatedRefMap=maps:remove(Reference,MonitorRefMap),
+	    NewPid=spawn(er_zauker_util, load_file_if_needed,[FailedFile]),	    
+	    MonitorRef = erlang:monitor(process,NewPid),
+		NewRecoveryRefMap=UpdatedRefMap#{ MonitorRef => FailedFile },
+		indexerDaemon(RunningWorker,FilesProcessed,NewRecoveryRefMap);
 	{CallerPid,running} ->
 	    %%io:format("Asked Running Worker:~p~n",[RunningWorker]),
 	    CallerPid!{worker,RunningWorker},
-	    indexerDaemon(RunningWorker,FilesProcessed);		
+	    indexerDaemon(RunningWorker,FilesProcessed,MonitorRefMap);
 	{Pid, files_processed} ->
 	    Pid!{files_processed,FilesProcessed},
-	    indexerDaemon(RunningWorker,FilesProcessed);		
+	    indexerDaemon(RunningWorker,FilesProcessed,MonitorRefMap);
 	{Pid, report} ->
 	    Pid!{worker,RunningWorker,files_processed,FilesProcessed},
-	    indexerDaemon(RunningWorker,FilesProcessed);
+	    indexerDaemon(RunningWorker,FilesProcessed,MonitorRefMap);
 	code_switch ->
 	    io:format("Reloading code...."),
-	    er_zauker_app:indexerDaemon(RunningWorker,FilesProcessed);
+	    er_zauker_app:indexerDaemon(RunningWorker,FilesProcessed,MonitorRefMap);
 	{Pid,stop} ->
 	    Pid!{stoped,self()}
     end.
 	 
 
+% directory_count_files(Pid,DirectoryPath)->
+% 	Files2Scan=filelib:fold_files(DirectoryPath,?SCAN_REGEXP , true, fun priv_file_count/2, 0),
+% 	Pid ! { directory_count, Files2Scan}.
+
+% priv_file_count(_Filename, Acc)->
+% 	Acc+1.
 
 %% @doc returns the number of file to index.
 indexDirectory(Directory)->    
@@ -155,8 +172,6 @@ map_ids_to_files([],_C)->
     [].
 
 listFileIds(TrigramList,Redis)->
-    %% @redis.sinter(*trigramInAnd)
-    %%io:format("DEBUG COMMAND: ~p~n",[ ["SINTER" | TrigramList] ]),
     {ok, Stuff}=eredis:q(Redis,["SINTER" | TrigramList]),
     Stuff.
 
